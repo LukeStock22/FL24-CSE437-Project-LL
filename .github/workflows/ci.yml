@@ -43,7 +43,7 @@ jobs:
 
     - name: Run tests
       env:
-        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/testdb"
+        DATABASE_URL: "postgres://master:password@localhost:5432/main"
       run: |
         npm run test
         npm run build
