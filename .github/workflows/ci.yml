@@ -18,9 +18,9 @@ jobs:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: testdb
+          POSTGRES_USER: master
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: main
         ports:
           - 5432:5432
         options: >-
@@ -43,7 +43,7 @@ jobs:
 
     - name: Run tests
       env:
-        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/testdb"
+        DATABASE_URL: "postgres://master:password@localhost:5432/main"
       run: |
         npm run test
         npm run build
