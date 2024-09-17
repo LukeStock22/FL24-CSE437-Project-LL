@@ -1,5 +1,7 @@
 // client/src/App.js
 import React from 'react';
+import './tailwind.css';
+
 
 function App() {
   return (
