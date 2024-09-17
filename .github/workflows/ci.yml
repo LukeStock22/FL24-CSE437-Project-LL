@@ -18,9 +18,9 @@ jobs:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_USER: master
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: main
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
         ports:
           - 5432:5432
         options: >-
@@ -38,13 +38,31 @@ jobs:
       with:
         node-version: '18.x'
 
-    - name: Install dependencies
+    - name: Install backend dependencies
       run: npm install
 
-    - name: Run tests
+    - name: Install frontend dependencies
+      working-directory: client
+      run: npm install
+
+    - name: Lint code
+      run: npm run lint
+
+    - name: Run backend tests
       env:
-        DATABASE_URL: "postgres://master:password@localhost:5432/main"
-      run: |
-        npm run test
-        npm run build
-        npm run test:frontend
+        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/testdb"
+      run: npm run test
+
+    - name: Run frontend tests
+      working-directory: client
+      run: npm run test:frontend
+
+    - name: Build frontend
+      working-directory: client
+      run: npm run build
+
+    - name: Run end-to-end tests
+      run: npm run test:e2e
+
+    - name: Ensure the application builds successfully
+      run: npm run build
