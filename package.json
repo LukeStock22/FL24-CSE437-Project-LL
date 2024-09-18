@@ -2,6 +2,7 @@
   "name": "fl24-cse437-project-ll",
   "version": "1.0.0",
   "description": "### Instructions/Link to access: <insert here>",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node server/server.js",
