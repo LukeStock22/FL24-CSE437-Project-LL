@@ -1,4 +1,5 @@
-const { Pool } = require('pg');
+import { Pool } from 'pg';
+import express from 'express';
 
 const pool = new Pool({
   user: 'master',
@@ -17,7 +18,7 @@ pool.connect((err) => {
 });
 
 // Example route to query the database
-const express = require('express');
+//const express = require('express');
 const app = express();
 
 app.get('/', async (req, res) => {
