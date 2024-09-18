@@ -1,29 +1,34 @@
-const { Pool } = require('pg');
+import mysql from 'mysql2';
+import express from 'express';
 
-const pool = new Pool({
-  user: 'master',
+// Create a connection pool to MySQL
+const pool = mysql.createPool({
   host: 'localhost',
+  user: 'root',
   database: 'main',
   password: 'password',
-  port: 5432,  // default port for PostgreSQL
+  port: 3306 // default port for MySQL
 });
 
-pool.connect((err) => {
+// Promisify the query method for async/await
+const promisePool = pool.promise();
+
+pool.getConnection((err, connection) => {
   if (err) {
     console.error('Connection error', err.stack);
   } else {
-    console.log('Connected to PostgreSQL');
+    console.log('Connected to MySQL');
+    connection.release(); // Release the connection back to the pool
   }
 });
 
 // Example route to query the database
-const express = require('express');
 const app = express();
 
 app.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW()');
-    res.json(result.rows);
+    const [rows] = await promisePool.query('SELECT NOW()');
+    res.json(rows);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
