@@ -1,35 +1,37 @@
-const mysql = require('mysql2');
+import mysql from 'mysql2';
+import express from 'express';
 
-// Create a connection to the database
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: 'master', // replace with your MySQL username
-  password: 'password', // replace with your MySQL password
-  database: 'language_app' // Use 'language_app' as the database name
+  user: 'master',
+  password: 'password',
+  database: 'language_app', // Use 'languageapp' as the database name
 });
 
-// Connect to MySQL
 connection.connect((err) => {
   if (err) {
-    console.error('Connection error:', err.stack);
-    return;
+    console.error('Connection error', err.stack);
+  } else {
+    console.log('Connected to MySQL');
   }
-  console.log('Connected to MySQL');
 });
 
-// Example route to query the database
-const express = require('express');
 const app = express();
 
 app.get('/', async (req, res) => {
-  connection.query('SELECT NOW()', (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      res.status(500).send('Server Error');
-      return;
-    }
-    res.json(results);
-  });
+  try {
+    connection.query('SELECT NOW()', (err, results) => {
+      if (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Server Error');
+        return;
+      }
+      res.json(results);
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 app.listen(3000, () => {
