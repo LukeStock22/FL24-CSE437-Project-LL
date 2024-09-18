@@ -1,38 +1,35 @@
-import mysql from 'mysql2';
-import express from 'express';
+const mysql = require('mysql2');
 
-// Create a connection pool to MySQL
-const pool = mysql.createPool({
+// Create a connection to the database
+const connection = mysql.createConnection({
   host: 'localhost',
-  user: 'root',
-  database: 'main',
-  password: 'password',
-  port: 3306 // default port for MySQL
+  user: 'master', // replace with your MySQL username
+  password: 'password', // replace with your MySQL password
+  database: 'language_app' // Use 'language_app' as the database name
 });
 
-// Promisify the query method for async/await
-const promisePool = pool.promise();
-
-pool.getConnection((err, connection) => {
+// Connect to MySQL
+connection.connect((err) => {
   if (err) {
-    console.error('Connection error', err.stack);
-  } else {
-    console.log('Connected to MySQL');
-    connection.release(); // Release the connection back to the pool
+    console.error('Connection error:', err.stack);
+    return;
   }
+  console.log('Connected to MySQL');
 });
 
 // Example route to query the database
+const express = require('express');
 const app = express();
 
 app.get('/', async (req, res) => {
-  try {
-    const [rows] = await promisePool.query('SELECT NOW()');
-    res.json(rows);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
+  connection.query('SELECT NOW()', (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).send('Server Error');
+      return;
+    }
+    res.json(results);
+  });
 });
 
 app.listen(3000, () => {
