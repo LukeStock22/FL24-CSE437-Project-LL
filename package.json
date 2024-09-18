@@ -10,7 +10,8 @@
     "server": "nodemon server/server.js",
     "start:frontend": "webpack serve --mode development --config client/webpack.config.js --open",
     "build": "webpack --config client/webpack.config.js --mode production",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
