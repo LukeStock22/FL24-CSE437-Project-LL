@@ -1,20 +1,26 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Login from './components/Login'; // Make sure the path is correct based on your folder structure
-import Signup from './components/Signup'; // If you want a Signup page as well, include it
+import Login from './components/Login';
+import Signup from './components/Signup';
 
-function App() {
+const Home = () => (
+  <div>
+    <h2>Welcome to the Home Page!</h2>
+    <p>This is the landing page after a successful login or signup.</p>
+  </div>
+);
+
+
+const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Route for the Login page */}
         <Route path="/" element={<Login />} />
-        
-        {/* Optional: Route for the Signup page */}
         <Route path="/signup" element={<Signup />} />
+        <Route path="/home" element={<Home />} />
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
