@@ -70,6 +70,51 @@ app.post('/api/google-login', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+// Signup route
+app.post('/api/signup', async (req, res) => {
+  const { email, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  connection.query(
+    'INSERT INTO users (email, password) VALUES (?, ?)',
+    [email, hashedPassword],
+    (err, results) => {
+      if (err) {
+        console.error('Error executing query:', err);
+        return res.status(500).send('Server Error');
+      }
+      res.json({ success: true });
+    }
+  );
 });
+
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  connection.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      return res.status(500).send('Server Error');
+    }
+
+    if (results.length === 0) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    const user = results[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    res.json({ success: true, message: 'Login successful!' });
+  });
+});
+
+
+
+app.listen(4000, () => {
+  console.log('Backend server is running on port 4000');
+});
+

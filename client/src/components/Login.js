@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import GoogleLoginButton from './GoogleLoginButton'; 
-
+import { Link } from 'react-router-dom';
+import GoogleLoginButton from './GoogleLoginButton'; // Assuming this is working later
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -8,7 +8,7 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const res = await fetch('http://localhost:3000/api/login', {
+    const res = await fetch('http://localhost:4000/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -16,10 +16,12 @@ const Login = () => {
     const data = await res.json();
     if (data.success) {
       alert('Login successful!');
+      window.location.href = '/home'; // Redirect to home after login
     } else {
       alert('Login failed');
     }
   };
+  
 
   return (
     <div>
@@ -41,6 +43,10 @@ const Login = () => {
       </form>
 
       <GoogleLoginButton />
+
+      <p>
+        Don't have an account yet? <Link to="/signup">Sign up here!</Link>
+      </p>
     </div>
   );
 };
