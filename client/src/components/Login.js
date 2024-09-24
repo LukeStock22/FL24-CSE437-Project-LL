@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import GoogleLoginButton from './GoogleLoginButton'; // Assuming this is working later
+import { Link, useNavigate } from 'react-router-dom';
+import GoogleLoginButton from './GoogleLoginButton'; // Assuming Google login later
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate(); // Use useNavigate to handle routing
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -16,12 +17,11 @@ const Login = () => {
     const data = await res.json();
     if (data.success) {
       alert('Login successful!');
-      window.location.href = '/home'; // Redirect to home after login
+      navigate('/home'); // Redirecting to /home after successful login
     } else {
       alert('Login failed');
     }
   };
-  
 
   return (
     <div>
@@ -45,7 +45,7 @@ const Login = () => {
       <GoogleLoginButton />
 
       <p>
-        Don&apos;t have an account yet? <Link to="/signup">Sign up here!</Link>
+        Don't have an account yet? <Link to="/signup">Sign up here!</Link>
       </p>
     </div>
   );
