@@ -45,7 +45,7 @@ const Login = () => {
       <GoogleLoginButton />
 
       <p>
-        Don't have an account yet? <Link to="/signup">Sign up here!</Link>
+        Don&apos;t have an account yet? <Link to="/signup">Sign up here!</Link>
       </p>
     </div>
   );
