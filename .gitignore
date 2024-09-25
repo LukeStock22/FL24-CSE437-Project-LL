@@ -1,0 +1,14 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore package-lock.json if needed
+package-lock.json
+
+# Ignore log files (if any)
+*.log
+
+# Ignore system files (optional, depending on your setup)
+.DS_Store  
+
+# Ignore environment variable files (e.g., .env)
+.env
