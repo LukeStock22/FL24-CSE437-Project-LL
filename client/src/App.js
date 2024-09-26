@@ -5,6 +5,7 @@ import Signup from './components/Signup';
 import Home from './components/Home'; // Importing Home.js correctly
 import EditProfile from './components/EditProfile';
 import Messages from './components/Messages';
+import Matching from './components/Matching';
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/home" element={<Home />} /> {/* This points to Home.js */}
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/matching" element={<Matching />} />
       </Routes>
     </Router>
   );
