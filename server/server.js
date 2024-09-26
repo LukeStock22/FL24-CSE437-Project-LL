@@ -88,6 +88,7 @@ app.post('/api/signup', async (req, res) => {
   );
 });
 
+// Login route
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -112,7 +113,57 @@ app.post('/api/login', async (req, res) => {
   });
 });
 
+// Profile route
+app.get('/api/profile', async (req, res) => {
+  const userId = 1; // Replace with actual logged in user ID once sessions/tokens in use
+  try {
+    connection.query(
+      'SELECT name, proficient_languages, learning_languages, timezone, interests_hobbies, age FROM users WHERE id = ?',
+      [userId],
+      (err, results) => {
+        if (err) {
+          console.error('Error executing query:', err);
+          return res.status(500).send('Error fetching profile');
+        }
 
+        if (results.length === 0) {
+          return res.status(404).send('Profile not found');
+        }
+
+        res.json(results[0]);
+      }
+    );
+  } catch (err) {
+    console.error('Error fetching profile:', err);
+    res.status(500).send('Error fetching profile');
+  }
+});
+
+//Update profile
+app.post('/api/profile/update', async (req, res) => {
+  const { name, proficientLanguages, learningLanguages, timezone, interests, age } = req.body;
+  const userId = 1; // Replace with actual logged in user ID once sessions/tokens in use
+
+  try {
+    connection.query(
+      `UPDATE users
+      SET name = ?, proficient_languages = ?, learning_languages = ?, timezone = ?, interests_hobbies = ?, age = ?
+      WHERE id = ?`,
+      [name, proficientLanguages, learningLanguages, timezone, interests, age, userId],
+      (err, results) => {
+        if (err) {
+          console.error('Error updating profile:', err);
+          return res.status(500).send('Error updating profile');
+        }
+
+        res.send('Profile updated successfully');
+      }
+    );
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    res.status(500).send('Error updating profile');
+  }
+});
 
 app.listen(4000, () => {
   console.log('Backend server is running on port 4000');
