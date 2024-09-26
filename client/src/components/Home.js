@@ -19,6 +19,9 @@ const Home = () => {
       <Link to="/messages">
         <button>Check Messages</button>
       </Link>
+      <Link to="/matching">
+        <button>Find Matches</button>
+      </Link>
     </div>
   );
 };
