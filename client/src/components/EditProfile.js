@@ -83,7 +83,7 @@ const EditProfile = () => {
           <label>Age:</label>
           <input type="number" name="age" value={profile.age} onChange={handleChange} />
         </div>
-        <button type="submit">Save Changes</button>
+        <button type="submit">Update Profile</button>
       </form>
       <Link to="/home">
         <button>Home</button>

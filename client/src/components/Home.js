@@ -16,6 +16,9 @@ const Home = () => {
       <Link to="/edit-profile">
         <button>Edit Profile</button>
       </Link>
+      <Link to="/messages">
+        <button>Check Messages</button>
+      </Link>
     </div>
   );
 };

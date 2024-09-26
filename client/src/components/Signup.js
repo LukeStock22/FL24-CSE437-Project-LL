@@ -16,7 +16,7 @@ const Signup = () => {
     const data = await res.json();
     if (data.success) {
       alert('Signup successful!');
-      navigate('/home'); // Redirect to home page after signup
+      navigate('/edit-profile'); // Redirect to profile creation page after signup
     } else {
       alert('Signup failed');
     }
