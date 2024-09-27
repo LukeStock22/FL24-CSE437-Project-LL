@@ -3,10 +3,13 @@ import cors from 'cors';
 import bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
 import mysql from 'mysql2';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+const SECRET_KEY = 'veryveryclassified';
 
 const CLIENT_ID = '1067721697571-0s5nj85n2o6nqsj9momo6bjtpe1m50qk.apps.googleusercontent.com'; // Add your Client ID
 const client = new OAuth2Client(CLIENT_ID);
@@ -25,6 +28,23 @@ connection.connect((err) => {
     console.log('Connected to MySQL');
   }
 });
+
+// Middleware to verify token
+const authenticateToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1]; // Bearer token
+  
+  if (!token) {
+    return res.sendStatus(401);
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) {
+      return res.sendStatus(403);
+    }
+    req.user = user;
+    next();
+  });
+};
 
 // Route for Google OAuth login verification
 app.post('/api/google-login', async (req, res) => {
@@ -99,6 +119,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     if (results.length === 0) {
+      console.log('User not found');
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
@@ -106,64 +127,129 @@ app.post('/api/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
+      console.log('Password mismatch');
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
-    res.json({ success: true, message: 'Login successful!' });
+    // Generate JWT
+    const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '1h' });
+    console.log('Generated Token:', token);
+
+    // Send the token back to the client
+    res.json({ success: true, message: 'Login successful!', token });
   });
 });
 
 // Profile route
-app.get('/api/profile', async (req, res) => {
-  const userId = 1; // Replace with actual logged in user ID once sessions/tokens in use
-  try {
-    connection.query(
-      'SELECT name, proficient_languages, learning_languages, timezone, interests_hobbies, age FROM users WHERE id = ?',
-      [userId],
-      (err, results) => {
-        if (err) {
-          console.error('Error executing query:', err);
-          return res.status(500).send('Error fetching profile');
-        }
+app.get('/api/profile', (req, res) => {
+  console.log("HERE");
+  const token = req.headers['authorization']?.split(' ')[1]; // Get token from header
+  console.log('Token received:', token); // Debug log
 
-        if (results.length === 0) {
-          return res.status(404).send('Profile not found');
-        }
-
-        res.json(results[0]);
-      }
-    );
-  } catch (err) {
-    console.error('Error fetching profile:', err);
-    res.status(500).send('Error fetching profile');
+  if (!token) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
   }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (err) {
+          console.error('Token verification error:', err); // Debug log
+          return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
+      }
+
+      console.log('Decoded token:', decoded);
+      const userId = decoded.id; // Get user ID from the decoded token
+      console.log('Decoded user ID:', userId); // Debug log
+
+      connection.query('SELECT * FROM users WHERE id = ?', [userId], (err, results) => {
+          if (err) {
+              console.error('Error executing query:', err);
+              return res.status(500).send('Server Error');
+          }
+          if (results.length === 0) {
+              return res.status(404).json({ success: false, message: 'User not found' });
+          }
+
+          const user = results[0];
+          res.json({
+              success: true, //Currently hardcoding success as we allow null values
+              name: user.name,
+              proficient_languages: user.proficient_languages,
+              learning_languages: user.learning_languages,
+              timezone: user.timezone,
+              interests: user.interests_hobbies,
+              age: user.age
+          });
+      });
+  });
 });
 
-//Update profile
+
 app.post('/api/profile/update', async (req, res) => {
   const { name, proficientLanguages, learningLanguages, timezone, interests, age } = req.body;
-  const userId = 1; // Replace with actual logged in user ID once sessions/tokens in use
+  const token = req.headers['authorization']?.split(' ')[1]; // Get token from header
 
-  try {
-    connection.query(
-      `UPDATE users
-      SET name = ?, proficient_languages = ?, learning_languages = ?, timezone = ?, interests_hobbies = ?, age = ?
-      WHERE id = ?`,
-      [name, proficientLanguages, learningLanguages, timezone, interests, age, userId],
-      (err, results) => {
-        if (err) {
-          console.error('Error updating profile:', err);
-          return res.status(500).send('Error updating profile');
-        }
-
-        res.send('Profile updated successfully');
-      }
-    );
-  } catch (err) {
-    console.error('Error updating profile:', err);
-    res.status(500).send('Error updating profile');
+  if (!token) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
   }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (err) {
+          return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
+      }
+
+      const userId = decoded.id; // Get user ID from the decoded token
+
+      // Set values to null if they are empty strings
+      const updatedValues = [
+          name || null, // If name is an empty string, set to null
+          proficientLanguages || null, // If proficientLanguages is an empty string, set to null
+          learningLanguages || null, // If learningLanguages is an empty string, set to null
+          timezone || null, // If timezone is an empty string, set to null
+          interests || null, // If interests is an empty string, set to null
+          age ? age : null, // If age is an empty string, set to null; or keep the value
+          userId // User ID from the token
+      ];
+
+      // Update the user profile in the database
+      connection.query(
+          `UPDATE users
+          SET name = ?, proficient_languages = ?, learning_languages = ?, timezone = ?, interests_hobbies = ?, age = ?
+          WHERE id = ?`,
+          [...updatedValues],
+          (err, results) => {
+              if (err) {
+                  console.error('Error updating profile:', err);
+                  return res.status(500).json({ success: false, message: 'Error updating profile' });
+              }
+
+              if (results.affectedRows === 0) {
+                  return res.status(404).json({ success: false, message: 'User not found' });
+              }
+
+              res.json({ success: true, message: 'Profile updated successfully' });
+          }
+      );
+  });
 });
+
+
+//Fetch matches
+app.get('/api/matches', authenticateToken, (req, res) => {
+  const { proficientLanguage, learningLanguage } = req.query;
+
+  connection.query(
+    'SELECT * FROM users WHERE FIND_IN_SET(?, proficient_languages) AND FIND_IN_SET(?, learning_languages)',
+    [proficientLanguage, learningLanguage],
+    (err, results) => {
+      if (err) {
+        console.error('Error executing query:', err);
+        return res.status(500).send('Server Error');
+      }
+      res.json(results);
+    }
+  );
+});
+
 
 app.listen(4000, () => {
   console.log('Backend server is running on port 4000');
