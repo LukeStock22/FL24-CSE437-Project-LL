@@ -16,7 +16,11 @@ const Login = () => {
     });
     const data = await res.json();
     if (data.success) {
+      // Store the JWT token in localStorage
+      localStorage.setItem('token', data.token); // Save token for later use
+      console.log('Token:', data.token);
       alert('Login successful!');
+      console.log("Logging In");
       navigate('/home'); // Redirecting to /home after successful login
     } else {
       alert('Login failed');

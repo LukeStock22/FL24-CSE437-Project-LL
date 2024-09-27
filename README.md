@@ -28,3 +28,8 @@ ADD COLUMN timezone VARCHAR(255),
 ADD COLUMN interests_hobbies TEXT,
 ADD COLUMN age INT;
 
+
+
+# IN SERVER
+npm install jsonwebtoken
+- Secret key currently hard coded, should be moved to a .env file
