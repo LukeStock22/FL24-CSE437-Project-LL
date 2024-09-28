@@ -250,6 +250,81 @@ app.get('/api/matches', authenticateToken, (req, res) => {
   );
 });
 
+// FRIEND REQUEST
+app.post('/api/friend-request', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
+
+  console.log("Friend Request Route Hit");
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No token provided' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
+    }
+
+    const user1_id = decoded.id; // The user who is sending the friend request
+    const { user2_id } = req.body; // The user receiving the friend request
+
+    // Check if the friendship already exists
+    const queryCheck = `SELECT * FROM friendships WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)`;
+    connection.query(queryCheck, [user1_id, user2_id, user2_id, user1_id], (checkErr, checkResults) => {
+      if (checkErr) {
+        console.error('Error checking friendship:', checkErr);
+        return res.status(500).json({ success: false, message: 'Error checking friendship' });
+      }
+
+      if (checkResults.length > 0) {
+        return res.status(400).json({ success: false, message: 'Friendship request already exists or users are already friends' });
+      }
+
+      // Insert a new friendship with status 'pending'
+      const queryInsert = `INSERT INTO friendships (user1_id, user2_id, status) VALUES (?, ?, 'pending')`;
+      connection.query(queryInsert, [user1_id, user2_id], (insertErr, insertResults) => {
+        if (insertErr) {
+          console.error('Error inserting friendship:', insertErr);
+          return res.status(500).json({ success: false, message: 'Error sending friend request' });
+        }
+
+        res.json({ success: true, message: 'Friend request sent successfully' });
+      });
+    });
+  });
+});
+
+//FETCH NOTIFICATIONS ROUTE
+app.get('/api/notifications', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+
+    const user2_id = decoded.id; // The logged-in user (the receiver of the friend requests)
+
+    // Query to fetch pending friend requests for the current user
+    const query = `SELECT f.id, f.user1_id, u.name AS user1_name FROM friendships f
+                   JOIN users u ON f.user1_id = u.id
+                   WHERE f.user2_id = ? AND f.status = 'pending'`;
+    connection.query(query, [user2_id], (err, results) => {
+      if (err) {
+        console.error('Error fetching notifications:', err);
+        return res.status(500).json({ message: 'Error fetching notifications' });
+      }
+
+      res.json(results); // Send notifications (pending friend requests) to the client
+    });
+  });
+});
+
+
 
 app.listen(4000, () => {
   console.log('Backend server is running on port 4000');

@@ -33,3 +33,22 @@ ADD COLUMN age INT;
 # IN SERVER
 npm install jsonwebtoken
 - Secret key currently hard coded, should be moved to a .env file
+
+# SQL that can be used to check friendship
+SELECT * FROM friendships
+WHERE (user1_id = ? AND user2_id = ?)
+   OR (user1_id = ? AND user2_id = ?)
+   AND status = 'accepted';
+
+# FRIENDSHIPS TABLE
+CREATE TABLE friendships (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user1_id INT NOT NULL,
+    user2_id INT NOT NULL,
+    status ENUM('pending', 'accepted', 'rejected', 'blocked') DEFAULT 'pending',
+    last_action_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user1_id) REFERENCES users(id),
+    FOREIGN KEY (user2_id) REFERENCES users(id),
+    UNIQUE KEY unique_friendship (user1_id, user2_id)
+);
