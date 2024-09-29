@@ -341,6 +341,176 @@ app.get('/api/notifications', (req, res) => {
   });
 });
 
+// GET FRIENDS
+app.get('/api/friends', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+
+    const userId = decoded.id;
+
+    // Query to get the list of friends
+    const query = `
+      SELECT u.id, u.name 
+      FROM users u
+      JOIN friendships f ON (f.user1_id = u.id OR f.user2_id = u.id) AND u.id != ?
+      WHERE (f.user1_id = ? OR f.user2_id = ?) AND f.status = 'accepted'
+    `;
+
+    connection.query(query, [userId, userId, userId], (err, results) => {
+      if (err) {
+        console.error('Error fetching friends:', err);
+        return res.status(500).json({ message: 'Error fetching friends' });
+      }
+
+      res.json(results);
+    });
+  });
+});
+
+
+// GET ALL CHATS
+app.get('/api/chats', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+
+    const userId = decoded.id;
+
+    const query = `
+      SELECT c.id, u.name AS friend_name, c.last_message_at
+      FROM chats c
+      JOIN users u ON (c.user1_id = u.id OR c.user2_id = u.id) AND u.id != ?
+      WHERE c.user1_id = ? OR c.user2_id = ?
+      ORDER BY c.last_message_at DESC`;
+
+    connection.query(query, [userId, userId, userId], (err, results) => {
+      if (err) {
+        console.error('Error fetching chats:', err);
+        return res.status(500).json({ message: 'Error fetching chats' });
+      }
+
+      res.json(results);
+    });
+  });
+});
+
+// START NEW CHAT
+app.post('/api/chats/start', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  const { friend_id } = req.body;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+
+    const userId = decoded.id;
+
+    const query = `
+      INSERT INTO chats (user1_id, user2_id)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE last_message_at = CURRENT_TIMESTAMP`;
+
+    connection.query(query, [userId, friend_id], (err, results) => {
+      if (err) {
+        console.error('Error starting chat:', err);
+        return res.status(500).json({ message: 'Error starting chat' });
+      }
+
+      res.json({ success: true, chat_id: results.insertId });
+    });
+  });
+});
+
+// SEND MESSAGE
+app.post('/api/messages/send', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  const { chat_id, message } = req.body;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+
+    const userId = decoded.id;
+
+    const query = `
+      INSERT INTO messages (chat_id, sender_id, message)
+      VALUES (?, ?, ?)`;
+
+    connection.query(query, [chat_id, userId, message], (err, results) => {
+      if (err) {
+        console.error('Error sending message:', err);
+        return res.status(500).json({ message: 'Error sending message' });
+      }
+
+      // Update the last_message_at timestamp in the chat
+      connection.query(
+        'UPDATE chats SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [chat_id]
+      );
+
+      res.json({ success: true });
+    });
+  });
+});
+
+// GET MESSAGES FOR A TASK
+app.get('/api/messages/:chat_id', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  const chat_id = req.params.chat_id;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+
+    const query = `
+      SELECT m.id, m.sender_id, m.message, m.sent_at, u.name AS sender_name
+      FROM messages m
+      JOIN users u ON m.sender_id = u.id
+      WHERE m.chat_id = ?
+      ORDER BY m.sent_at ASC`;
+
+    connection.query(query, [chat_id], (err, results) => {
+      if (err) {
+        console.error('Error fetching messages:', err);
+        return res.status(500).json({ message: 'Error fetching messages' });
+      }
+
+      res.json(results);
+    });
+  });
+});
+
+
 
 
 app.listen(4000, () => {
