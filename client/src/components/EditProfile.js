@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const EditProfile = () => {
+    const navigate = useNavigate(); // Use the hook here
     const [profile, setProfile] = useState({
         name: '',
         proficientLanguages: '',
@@ -14,35 +15,38 @@ const EditProfile = () => {
     // Fetch the profile data from the server
     useEffect(() => {
       const fetchProfile = async () => {
-        const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+        const token = localStorage.getItem('token');
         console.log('Token:', token);
     
         const res = await fetch('http://localhost:4000/api/profile', {
-            headers: {
-                'Authorization': `Bearer ${token}` // Include the token in the Authorization header
-            }
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
     
         const data = await res.json();
-        console.log('Response Status:', res.status);
-        console.log('Response Data:', data);
     
-        // Check if response was successful and if it contains the success flag
         if (res.ok && data.success) {
-            setProfile({
-                name: data.name || '',  // Default to empty string if null
-                proficientLanguages: data.proficient_languages || '',
-                learningLanguages: data.learning_languages || '',
-                timezone: data.timezone || '',
-                interests: data.interests || '',
-                age: data.age || '' // Default to empty string for age
-            });
+          setProfile({
+            name: data.name || '',
+            proficientLanguages: data.proficient_languages || '',
+            learningLanguages: data.learning_languages || '',
+            timezone: data.timezone || '',
+            interests: data.interests || '',
+            age: data.age || ''
+          });
+        } else if (res.status === 403 && data.message === 'Failed to authenticate token') {
+          // If the token is expired or invalid, clear localStorage and prompt user to login again
+          localStorage.removeItem('token');
+          alert('Session expired. Please log in again.');
+          navigate('/'); // Redirect to login page
         } else {
-            alert('Failed to fetch profile data: ' + (data.message || 'Unknown error')); // Provide better error messaging
+          alert('Failed to fetch profile data: ' + (data.message || 'Unknown error'));
         }
-    };
+      };
+    
       fetchProfile();
-  }, []);
+    }, [navigate]); // Add navigate as a dependency to useEffect
 
     // Handle input changes
     const handleChange = (e) => {
