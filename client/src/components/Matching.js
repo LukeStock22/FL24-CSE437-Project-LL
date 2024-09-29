@@ -39,15 +39,15 @@ const Matching = () => {
   }, [proficientLanguage, learningLanguage]);
 
   const handleAddFriend = (user2_id) => {
-    const token = localStorage.getItem('token'); // Get token from localStorage
-
+    const token = localStorage.getItem('token');
+  
     fetch('http://localhost:4000/api/friend-request', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
+        'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ user2_id }), // Send the target user's ID in the body
+      body: JSON.stringify({ user2_id }),
     })
       .then((response) => {
         if (response.status === 401) {
@@ -67,6 +67,7 @@ const Matching = () => {
         console.error('Error sending friend request:', error);
       });
   };
+  
 
   return (
     <div>

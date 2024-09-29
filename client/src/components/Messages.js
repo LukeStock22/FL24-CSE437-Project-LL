@@ -7,6 +7,7 @@ const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [friends, setFriends] = useState([]);
+  const [activeChatUserIds, setActiveChatUserIds] = useState([]); // Track IDs of users in active chats
 
   useEffect(() => {
     fetchChats();
@@ -19,13 +20,17 @@ const Messages = () => {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then((res) => res.json())
-      .then((data) => setChats(data))
+      .then((data) => {
+        setChats(data);
+        // Extract user IDs from chats to filter friends
+        const userId = JSON.parse(atob(token.split('.')[1])).id; // Decode the token to get the current user's ID
+        const userIds = data.map(chat => (chat.user1_id === userId ? chat.user2_id : chat.user1_id));
+        setActiveChatUserIds(userIds);
+      })
       .catch((err) => console.error('Error fetching chats:', err));
   };
 
   const fetchFriends = () => {
-    // Fetch friends that user can start a chat with
-    // Assume you have a route `/api/friends`
     const token = localStorage.getItem('token');
     fetch('http://localhost:4000/api/friends', {
       headers: { 'Authorization': `Bearer ${token}` },
@@ -58,7 +63,7 @@ const Messages = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          fetchChats(); // Refresh chats
+          fetchChats(); // Refresh chats to update the list
         }
       })
       .catch((err) => console.error('Error starting chat:', err));
@@ -93,11 +98,13 @@ const Messages = () => {
       {/* Start a new chat */}
       <div>
         <h3>Start a Chat</h3>
-        {friends.map((friend) => (
-          <button key={friend.id} onClick={() => startChat(friend.id)}>
-            {friend.name}
-          </button>
-        ))}
+        {friends
+          .filter(friend => !activeChatUserIds.includes(friend.id)) // Filter out friends who are already in chats
+          .map(friend => (
+            <button key={friend.id} onClick={() => startChat(friend.id)}>
+              {friend.name}
+            </button>
+          ))}
       </div>
 
       {/* List of chats */}
@@ -140,3 +147,5 @@ const Messages = () => {
 };
 
 export default Messages;
+
+
