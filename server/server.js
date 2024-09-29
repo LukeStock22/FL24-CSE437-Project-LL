@@ -93,19 +93,38 @@ app.post('/api/google-login', async (req, res) => {
 // Signup route
 app.post('/api/signup', async (req, res) => {
   const { email, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
 
-  connection.query(
-    'INSERT INTO users (email, password) VALUES (?, ?)',
-    [email, hashedPassword],
-    (err, results) => {
-      if (err) {
-        console.error('Error executing query:', err);
-        return res.status(500).send('Server Error');
-      }
-      res.json({ success: true });
+  // Check if the user already exists
+  connection.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: 'Server error' });
     }
-  );
+
+    if (results.length > 0) {
+      return res.status(400).json({ success: false, message: 'Email already exists' });
+    }
+
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert new user into the database
+    connection.query('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashedPassword], (err, result) => {
+      if (err) {
+        return res.status(500).json({ success: false, message: 'Error creating user' });
+      }
+
+      // After creating the user, generate JWT token
+      const userId = result.insertId; // Get the newly created user's ID
+      const token = jwt.sign({ id: userId }, SECRET_KEY, { expiresIn: '4h' }); // Generate token with the user ID
+
+      // Send the token back to the client along with a success message
+      res.json({
+        success: true,
+        message: 'User created successfully',
+        token, // Send the JWT token
+      });
+    });
+  });
 });
 
 // Login route
@@ -132,7 +151,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     // Generate JWT
-    const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '4h' });
     console.log('Generated Token:', token);
 
     // Send the token back to the client
