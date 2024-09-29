@@ -7,6 +7,7 @@ const Home = () => {
   const [notifications, setNotifications] = useState([]); // Store notifications
   const [showDropdown, setShowDropdown] = useState(false); // Toggle dropdown visibility
   const [unreadCount, setUnreadCount] = useState(0); // Unread notification count
+  const [viewProfile, setViewProfile] = useState(null); // Store profile data when "View Profile" is clicked
 
   useEffect(() => {
     const fetchNotifications = () => {
@@ -31,8 +32,50 @@ const Home = () => {
     fetchNotifications(); // Fetch notifications when the component mounts
   }, []);
 
+  const handleAction = (notificationId, action) => {
+    const token = localStorage.getItem('token'); // Get token from localStorage
+
+    fetch(`http://localhost:4000/api/friend-request/${notificationId}/${action}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          // Remove the notification from the list after action is performed
+          setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch((error) => console.error(`Error ${action}ing friend request:`, error));
+  };
+
+  const handleViewProfile = (userId) => {
+    const token = localStorage.getItem('token'); // Get token from localStorage
+
+    fetch(`http://localhost:4000/api/profile/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setViewProfile(data); // Store the fetched profile data in state
+          alert(`Name: ${data.name}, Languages: ${data.proficient_languages}, Age: ${data.age}`);
+        } else {
+          alert('Failed to fetch profile');
+        }
+      })
+      .catch((error) => console.error('Error fetching profile:', error));
+  };
+
   const handleLogout = () => {
-    // Clear session or token if needed (e.g., localStorage.removeItem('token'))
+    localStorage.removeItem('token'); // Clear the token from localStorage
     navigate('/'); // Redirecting to login page
   };
 
@@ -63,12 +106,16 @@ const Home = () => {
             {notifications.length > 0 ? (
               notifications.map((notification) => (
                 <div key={notification.id} className="notification-item">
-                  <p>
-                    Friend request from {notification.user1_name} {/* Assuming you send user1's name */}
-                  </p>
-                  <button onClick={() => alert('View Profile clicked')} className="notification-action">View Profile</button>
-                  <button onClick={() => alert('Accept clicked')} className="notification-action">Accept</button>
-                  <button onClick={() => alert('Reject clicked')} className="notification-action">Reject</button>
+                  <p>Friend request from {notification.user1_name}</p>
+                  <button onClick={() => handleViewProfile(notification.user1_id)} className="notification-action">
+                    View Profile
+                  </button>
+                  <button onClick={() => handleAction(notification.id, 'accept')} className="notification-action">
+                    Accept
+                  </button>
+                  <button onClick={() => handleAction(notification.id, 'reject')} className="notification-action">
+                    Reject
+                  </button>
                 </div>
               ))
             ) : (
@@ -88,9 +135,20 @@ const Home = () => {
       <Link to="/matching">
         <button>Find Matches</button>
       </Link>
+
+      {/* Display profile information if viewProfile is set */}
+      {viewProfile && (
+        <div className="profile-view">
+          <h3>{viewProfile.name}'s Profile</h3>
+          <p>Proficient Languages: {viewProfile.proficient_languages}</p>
+          <p>Learning Languages: {viewProfile.learning_languages}</p>
+          <p>Age: {viewProfile.age}</p>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Home;
+
 

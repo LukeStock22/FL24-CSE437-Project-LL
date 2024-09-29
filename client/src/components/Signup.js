@@ -15,6 +15,8 @@ const Signup = () => {
     });
     const data = await res.json();
     if (data.success) {
+      // Store the JWT token
+      localStorage.setItem('token', data.token); // Add this line to store the token
       alert('Signup successful!');
       navigate('/edit-profile'); // Redirect to profile creation page after signup
     } else {
