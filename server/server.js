@@ -310,6 +310,50 @@ app.post('/api/friend-request/:id/:action', (req, res) => {
   });
 });
 
+// CREATE A NEW FRIEND REQUEST
+
+// Create a new friend request
+app.post('/api/friend-request', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No token provided' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
+    }
+
+    const user1_id = decoded.id; // The ID of the user sending the friend request
+    const { user2_id } = req.body; // The ID of the user to whom the friend request is being sent
+
+    // Check if a friendship already exists
+    const queryCheck = `SELECT * FROM friendships WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)`;
+    connection.query(queryCheck, [user1_id, user2_id, user2_id, user1_id], (checkErr, results) => {
+      if (checkErr) {
+        console.error('Error checking friendship:', checkErr);
+        return res.status(500).json({ success: false, message: 'Server error' });
+      }
+
+      if (results.length > 0) {
+        return res.status(400).json({ success: false, message: 'Friend request already exists' });
+      }
+
+      // Insert a new friend request
+      const queryInsert = `INSERT INTO friendships (user1_id, user2_id, status) VALUES (?, ?, 'pending')`;
+      connection.query(queryInsert, [user1_id, user2_id], (insertErr) => {
+        if (insertErr) {
+          console.error('Error creating friend request:', insertErr);
+          return res.status(500).json({ success: false, message: 'Error creating friend request' });
+        }
+
+        res.json({ success: true, message: 'Friend request sent successfully' });
+      });
+    });
+  });
+});
+
 
 //FETCH NOTIFICATIONS ROUTE
 app.get('/api/notifications', (req, res) => {
@@ -375,7 +419,6 @@ app.get('/api/friends', (req, res) => {
   });
 });
 
-
 // GET ALL CHATS
 app.get('/api/chats', (req, res) => {
   const token = req.headers['authorization']?.split(' ')[1];
@@ -392,11 +435,15 @@ app.get('/api/chats', (req, res) => {
     const userId = decoded.id;
 
     const query = `
-      SELECT c.id, u.name AS friend_name, c.last_message_at
+      SELECT c.id, 
+             IF(c.user1_id = ?, u2.name, u1.name) AS friend_name, 
+             c.last_message_at
       FROM chats c
-      JOIN users u ON (c.user1_id = u.id OR c.user2_id = u.id) AND u.id != ?
+      JOIN users u1 ON c.user1_id = u1.id
+      JOIN users u2 ON c.user2_id = u2.id
       WHERE c.user1_id = ? OR c.user2_id = ?
-      ORDER BY c.last_message_at DESC`;
+      ORDER BY c.last_message_at DESC
+    `;
 
     connection.query(query, [userId, userId, userId], (err, results) => {
       if (err) {
@@ -408,6 +455,7 @@ app.get('/api/chats', (req, res) => {
     });
   });
 });
+
 
 // START NEW CHAT
 app.post('/api/chats/start', (req, res) => {
