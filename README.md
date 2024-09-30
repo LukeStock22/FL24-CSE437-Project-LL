@@ -77,3 +77,14 @@ CREATE TABLE chats (
     FOREIGN KEY (user2_id) REFERENCES users(id)
 );
 
+# TODO
+- Once you send a friend request, change "Add Friend" button to "Pending" and disable ability to press button
+
+
+# TAILWIND
+npm install tailwindcss postcss autoprefixer
+
+npx tailwindcss init -p
+
+ Line 32 in webpack.config.js use: ['style-loader', 'css-loader', 'postcss-loader'],
+
