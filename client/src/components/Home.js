@@ -1,51 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // useNavigate is the new hook
-import './Home.css';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Home = () => {
-  const navigate = useNavigate(); // Replacing useHistory with useNavigate
-  const [notifications, setNotifications] = useState([]); // Store notifications
-  const [showDropdown, setShowDropdown] = useState(false); // Toggle dropdown visibility
-  const [unreadCount, setUnreadCount] = useState(0); // Unread notification count
-  const [viewProfile, setViewProfile] = useState(null); // Store profile data when "View Profile" is clicked
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [viewProfile, setViewProfile] = useState(null);
 
   useEffect(() => {
     const fetchNotifications = () => {
-      const token = localStorage.getItem('token'); // Assume token stored in localStorage
+      const token = localStorage.getItem('token');
       fetch('http://localhost:4000/api/notifications', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Include token in Authorization header
+          'Authorization': `Bearer ${token}`,
         },
       })
         .then((response) => response.json())
         .then((data) => {
-          setNotifications(data); // Set notifications from server response
-          setUnreadCount(data.length); // Set unread count as number of notifications
+          setNotifications(data);
+          setUnreadCount(data.length);
         })
         .catch((error) => {
           console.error('Error fetching notifications:', error);
         });
     };
 
-    fetchNotifications(); // Fetch notifications when the component mounts
+    fetchNotifications();
   }, []);
 
   const handleAction = (notificationId, action) => {
-    const token = localStorage.getItem('token'); // Get token from localStorage
+    const token = localStorage.getItem('token');
 
     fetch(`http://localhost:4000/api/friend-request/${notificationId}/${action}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Include the token in the Authorization header
+        'Authorization': `Bearer ${token}`,
       },
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          // Remove the notification from the list after action is performed
           setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
         } else {
           alert(data.message);
@@ -55,7 +53,7 @@ const Home = () => {
   };
 
   const handleViewProfile = (userId) => {
-    const token = localStorage.getItem('token'); // Get token from localStorage
+    const token = localStorage.getItem('token');
 
     fetch(`http://localhost:4000/api/profile/${userId}`, {
       headers: {
@@ -65,7 +63,7 @@ const Home = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          setViewProfile(data); // Store the fetched profile data in state
+          setViewProfile(data);
           alert(`Name: ${data.name}, Languages: ${data.proficient_languages}, Age: ${data.age}`);
         } else {
           alert('Failed to fetch profile');
@@ -75,25 +73,28 @@ const Home = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Clear the token from localStorage
-    navigate('/'); // Redirecting to login page
+    localStorage.removeItem('token');
+    navigate('/');
   };
 
   const toggleDropdown = () => {
-    setShowDropdown(!showDropdown); // Toggle dropdown on button click
-    setUnreadCount(0); // Mark all notifications as read when dropdown is opened
+    setShowDropdown(!showDropdown);
+    setUnreadCount(0);
   };
 
   return (
-    <div className="home-container">
-      <h2>Welcome to the Home Page</h2>
+    <div className="flex flex-col items-center p-8 bg-gray-100 min-h-screen">
+      <h2 className="text-3xl font-bold mb-6">Welcome to the Home Page</h2>
 
       {/* Notifications Button */}
-      <div className="notifications-container">
-        <button onClick={toggleDropdown} className="notifications-button">
+      <div className="mb-4">
+        <button
+          onClick={toggleDropdown}
+          className="relative bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+        >
           Notifications
           {unreadCount > 0 && (
-            <span className="notification-badge">
+            <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center">
               {unreadCount}
             </span>
           )}
@@ -101,48 +102,62 @@ const Home = () => {
 
         {/* Dropdown List */}
         {showDropdown && (
-          <div className="notifications-dropdown">
-            <h4>Notifications</h4>
+          <div className="absolute mt-2 bg-white border border-gray-300 rounded shadow-md p-4 w-64">
+            <h4 className="font-bold mb-2">Notifications</h4>
             {notifications.length > 0 ? (
               notifications.map((notification) => (
-                <div key={notification.id} className="notification-item">
-                  <p>Friend request from {notification.user1_name}</p>
-                  <button onClick={() => handleViewProfile(notification.user1_id)} className="notification-action">
+                <div key={notification.id} className="mb-2 p-2 border-b">
+                  <p className="text-sm mb-2">Friend request from {notification.user1_name}</p>
+                  <button
+                    onClick={() => handleViewProfile(notification.user1_id)}
+                    className="bg-green-500 text-white py-1 px-2 rounded mr-2 hover:bg-green-600"
+                  >
                     View Profile
                   </button>
-                  <button onClick={() => handleAction(notification.id, 'accept')} className="notification-action">
+                  <button
+                    onClick={() => handleAction(notification.id, 'accept')}
+                    className="bg-blue-500 text-white py-1 px-2 rounded mr-2 hover:bg-blue-600"
+                  >
                     Accept
                   </button>
-                  <button onClick={() => handleAction(notification.id, 'reject')} className="notification-action">
+                  <button
+                    onClick={() => handleAction(notification.id, 'reject')}
+                    className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
+                  >
                     Reject
                   </button>
                 </div>
               ))
             ) : (
-              <p>No new notifications</p>
+              <p className="text-sm">No new notifications</p>
             )}
           </div>
         )}
       </div>
 
-      <button onClick={handleLogout}>Logout</button>
-      <Link to="/edit-profile">
-        <button>Edit Profile</button>
-      </Link>
-      <Link to="/messages">
-        <button>Check Messages</button>
-      </Link>
-      <Link to="/matching">
-        <button>Find Matches</button>
-      </Link>
+      {/* Navigation Buttons */}
+      <div className="space-x-4">
+        <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+          Logout
+        </button>
+        <Link to="/edit-profile">
+          <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Edit Profile</button>
+        </Link>
+        <Link to="/messages">
+          <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Check Messages</button>
+        </Link>
+        <Link to="/matching">
+          <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Find Matches</button>
+        </Link>
+      </div>
 
       {/* Display profile information if viewProfile is set */}
       {viewProfile && (
-        <div className="profile-view">
-          <h3>{viewProfile.name}'s Profile</h3>
-          <p>Proficient Languages: {viewProfile.proficient_languages}</p>
-          <p>Learning Languages: {viewProfile.learning_languages}</p>
-          <p>Age: {viewProfile.age}</p>
+        <div className="mt-8 p-4 bg-white rounded shadow-md w-full max-w-md">
+          <h3 className="text-xl font-bold mb-2">{viewProfile.name}'s Profile</h3>
+          <p className="text-sm mb-2">Proficient Languages: {viewProfile.proficient_languages}</p>
+          <p className="text-sm mb-2">Learning Languages: {viewProfile.learning_languages}</p>
+          <p className="text-sm">Age: {viewProfile.age}</p>
         </div>
       )}
     </div>
@@ -150,5 +165,4 @@ const Home = () => {
 };
 
 export default Home;
-
 

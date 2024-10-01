@@ -6,7 +6,7 @@ import Home from './components/Home'; // Importing Home.js correctly
 import EditProfile from './components/EditProfile';
 import Messages from './components/Messages';
 import Matching from './components/Matching';
-//import './tailwind.css'; //wasn't working as intended
+import './tailwind.css'; //wasn't working as intended
 
 const App = () => {
   return (
