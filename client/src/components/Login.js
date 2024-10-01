@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import GoogleLoginButton from './GoogleLoginButton'; // Assuming Google login later
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -53,10 +52,6 @@ const Login = () => {
             Login
           </button>
         </form>
-
-        <div className="my-4">
-          <GoogleLoginButton />
-        </div>
 
         <p className="mt-4 text-center">
           Don't have an account yet? <Link to="/signup" className="text-blue-500">Sign up here!</Link>
