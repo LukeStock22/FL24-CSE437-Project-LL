@@ -8,9 +8,9 @@ const Home = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [viewProfile, setViewProfile] = useState(null);
   const [username, setUsername] = useState('');
+  const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
-    // Fetch the username from the API or localStorage
     const token = localStorage.getItem('token');
     fetch('http://localhost:4000/api/profile', {
       method: 'GET',
@@ -22,12 +22,16 @@ const Home = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          setUsername(data.name); // Assuming 'username' is part of the response
+          setUsername(data.name);
         } else {
           alert('Failed to fetch username');
         }
+        setLoading(false); // Data is fetched, stop loading
       })
-      .catch((error) => console.error('Error fetching username:', error));
+      .catch((error) => {
+        console.error('Error fetching username:', error);
+        setLoading(false); // Stop loading even if there's an error
+      });
   }, []);
 
   useEffect(() => {
@@ -86,8 +90,6 @@ const Home = () => {
       .then((data) => {
         if (data.success) {
           setViewProfile(data);
-          //setUsername(data.name);
-          //console.log(data.name);
           alert(`Name: ${data.name}, Languages: ${data.proficient_languages}, Age: ${data.age}`);
         } else {
           alert('Failed to fetch profile');
@@ -105,6 +107,11 @@ const Home = () => {
     setShowDropdown(!showDropdown);
     setUnreadCount(0);
   };
+
+  // If loading is true, show a loading message or spinner
+  if (loading) {
+    return <div className="text-center text-2xl">{/*Loading...*/}</div>;
+  }
 
   return (
     <div className="flex flex-col items-center p-8 bg-gray-100 min-h-screen">
@@ -189,4 +196,3 @@ const Home = () => {
 };
 
 export default Home;
-

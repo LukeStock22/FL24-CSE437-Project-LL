@@ -8,15 +8,17 @@ const Messages = () => {
   const [newMessage, setNewMessage] = useState('');
   const [friends, setFriends] = useState([]);
   const [activeChatUserIds, setActiveChatUserIds] = useState([]);
+  const [isLoading, setIsLoading] = useState(true); // New loading state
 
   useEffect(() => {
-    fetchChats();
-    fetchFriends();
+    Promise.all([fetchChats(), fetchFriends()])
+      .then(() => setIsLoading(false))
+      .catch((err) => console.error('Error during data fetching:', err));
   }, []);
 
   const fetchChats = () => {
     const token = localStorage.getItem('token');
-    fetch('http://localhost:4000/api/chats', {
+    return fetch('http://localhost:4000/api/chats', {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -31,7 +33,7 @@ const Messages = () => {
 
   const fetchFriends = () => {
     const token = localStorage.getItem('token');
-    fetch('http://localhost:4000/api/friends', {
+    return fetch('http://localhost:4000/api/friends', {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -90,6 +92,10 @@ const Messages = () => {
       .catch((err) => console.error('Error sending message:', err));
   };
 
+  if (isLoading) {
+    return <p>{/*Loading...*/}</p>; // Show loading message while data is being fetched
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h2 className="text-3xl font-bold mb-6">Messages</h2>
@@ -97,17 +103,21 @@ const Messages = () => {
       {/* Start a new chat */}
       <div className="mb-8">
         <h3 className="text-2xl font-bold mb-4">Start a Chat</h3>
-        {friends
-          .filter(friend => !activeChatUserIds.includes(friend.id))
-          .map(friend => (
-            <button
-              key={friend.id}
-              onClick={() => startChat(friend.id)}
-              className="bg-green-500 text-white py-1 px-4 rounded mr-2 hover:bg-green-600 mb-2"
-            >
-              {friend.name}
-            </button>
-          ))}
+        {friends.filter(friend => !activeChatUserIds.includes(friend.id)).length === 0 ? (
+          <p className="text-red-500">Match with a friend to start a chat</p>
+        ) : (
+          friends
+            .filter(friend => !activeChatUserIds.includes(friend.id))
+            .map(friend => (
+              <button
+                key={friend.id}
+                onClick={() => startChat(friend.id)}
+                className="bg-green-500 text-white py-1 px-4 rounded mr-2 hover:bg-green-600 mb-2"
+              >
+                {friend.name}
+              </button>
+            ))
+        )}
       </div>
 
       {/* List of chats */}
@@ -161,4 +171,3 @@ const Messages = () => {
 };
 
 export default Messages;
-
