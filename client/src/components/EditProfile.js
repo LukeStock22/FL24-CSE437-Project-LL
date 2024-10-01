@@ -12,6 +12,8 @@ const EditProfile = () => {
     age: ''
   });
 
+  const [successMessage, setSuccessMessage] = useState(''); // State for success message
+
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem('token');
@@ -65,9 +67,10 @@ const EditProfile = () => {
     });
 
     if (res.ok) {
-      alert('Profile updated successfully!');
+      setSuccessMessage('Profile updated successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000); // Clear message after 3 seconds
     } else {
-      alert('Failed to update profile');
+      setSuccessMessage('Failed to update profile');
     }
   };
 
@@ -135,12 +138,16 @@ const EditProfile = () => {
             className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-        >
-          Update Profile
-        </button>
+        <div className="flex items-center">
+          <button
+            type="submit"
+            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+          >
+            Update Profile
+          </button>
+          {/* Show success message */}
+          {successMessage && <span className="ml-4 text-green-500">{successMessage}</span>}
+        </div>
       </form>
 
       <Link to="/home">

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState(''); // State for error message
   const navigate = useNavigate(); // Use useNavigate to handle routing
 
   const handleLogin = async (e) => {
@@ -18,11 +19,11 @@ const Login = () => {
       // Store the JWT token in localStorage
       localStorage.setItem('token', data.token); // Save token for later use
       console.log('Token:', data.token);
-      alert('Login successful!');
       console.log("Logging In");
+      setErrorMessage(''); // Clear any previous error messages
       navigate('/home'); // Redirecting to /home after successful login
     } else {
-      alert('Login failed');
+      setErrorMessage('Password or username was incorrect'); // Set error message if login fails
     }
   };
 
@@ -45,6 +46,12 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
           />
+          
+          {/* Conditionally render the error message */}
+          {errorMessage && (
+            <p className="text-red-500 text-center">{errorMessage}</p>
+          )}
+
           <button
             type="submit"
             className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
