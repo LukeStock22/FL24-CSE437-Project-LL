@@ -83,7 +83,7 @@ CREATE TABLE chats (
 - Default filters for proficient language and learning language based on currnet users languages
 - Transfer messaging over to Socket.io
 
-#TODO for MVP
+# TODO for MVP
 - password reset
 
 # TAILWIND
