@@ -79,6 +79,9 @@ CREATE TABLE chats (
 
 # TODO
 - Once you send a friend request, change "Add Friend" button to "Pending" and disable ability to press button
+- Add more filter options to matching section
+- Default filters for proficient language and learning language based on currnet users languages
+- Transfer messaging over to Socket.io
 
 
 # TAILWIND

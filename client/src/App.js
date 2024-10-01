@@ -6,7 +6,8 @@ import Home from './components/Home'; // Importing Home.js correctly
 import EditProfile from './components/EditProfile';
 import Messages from './components/Messages';
 import Matching from './components/Matching';
-import './tailwind.css'; //wasn't working as intended
+import ViewProfile from './components/ViewProfile';
+import './tailwind.css';
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/matching" element={<Matching />} />
+        <Route path="/view-profile/:id" element={<ViewProfile />} />
       </Routes>
     </Router>
   );
