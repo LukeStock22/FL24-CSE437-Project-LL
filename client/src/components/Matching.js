@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Matching = () => {
   const [proficientLanguage, setProficientLanguage] = useState('');
@@ -7,6 +7,7 @@ const Matching = () => {
   const [matches, setMatches] = useState([]);
 
   const languageOptions = ['English', 'Spanish', 'French', 'Polish', 'Italian', 'Mandarin', 'German', 'Hindi', 'Russian'];
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMatches = () => {
@@ -109,7 +110,7 @@ const Matching = () => {
                 <p>{match.name} - {match.proficient_languages} - {match.learning_languages}</p>
                 <div className="mt-2">
                   <button
-                    onClick={() => alert(`View Profile of ${match.name}`)}
+                    onClick={() => navigate(`/view-profile/${match.id}`)}
                     className="bg-blue-500 text-white py-1 px-4 rounded mr-2 hover:bg-blue-600"
                   >
                     View Profile

@@ -252,13 +252,18 @@ app.post('/api/profile/update', async (req, res) => {
 });
 
 
-//Fetch matches
+//FETCH MATCHES
+// Fetch matches
 app.get('/api/matches', authenticateToken, (req, res) => {
   const { proficientLanguage, learningLanguage } = req.query;
+  const userId = req.user.id; // Assuming authenticateToken middleware adds user id to req
 
   connection.query(
-    'SELECT * FROM users WHERE FIND_IN_SET(?, proficient_languages) AND FIND_IN_SET(?, learning_languages)',
-    [proficientLanguage, learningLanguage],
+    `SELECT * FROM users 
+     WHERE FIND_IN_SET(?, proficient_languages) 
+     AND FIND_IN_SET(?, learning_languages)
+     AND id != ?`, // Exclude the current user from the matches
+    [proficientLanguage, learningLanguage, userId],
     (err, results) => {
       if (err) {
         console.error('Error executing query:', err);
@@ -268,6 +273,7 @@ app.get('/api/matches', authenticateToken, (req, res) => {
     }
   );
 });
+
 
 // FRIEND REQUEST
 // Friend request action route (accept or reject)
@@ -555,6 +561,32 @@ app.get('/api/messages/:chat_id', (req, res) => {
 
       res.json(results);
     });
+  });
+});
+
+//VIEW PROFILE ATTEMPT NO. 1
+// Route to get the profile info of a user (view profile)
+app.get('/api/view-profile/:user2_id', authenticateToken, (req, res) => {
+  const user2_id = req.params.user2_id;
+
+  // Query to fetch the user profile excluding the password
+  const query = `
+    SELECT id, email, name, proficient_languages, learning_languages, timezone, interests_hobbies, age
+    FROM users
+    WHERE id = ?`;
+
+  connection.query(query, [user2_id], (err, result) => {
+    if (err) {
+      console.error('Error fetching user profile:', err);
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return the profile info of the user
+    res.json(result[0]);
   });
 });
 

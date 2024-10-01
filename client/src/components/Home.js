@@ -7,6 +7,28 @@ const Home = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [viewProfile, setViewProfile] = useState(null);
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    // Fetch the username from the API or localStorage
+    const token = localStorage.getItem('token');
+    fetch('http://localhost:4000/api/profile', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setUsername(data.name); // Assuming 'username' is part of the response
+        } else {
+          alert('Failed to fetch username');
+        }
+      })
+      .catch((error) => console.error('Error fetching username:', error));
+  }, []);
 
   useEffect(() => {
     const fetchNotifications = () => {
@@ -64,6 +86,8 @@ const Home = () => {
       .then((data) => {
         if (data.success) {
           setViewProfile(data);
+          //setUsername(data.name);
+          //console.log(data.name);
           alert(`Name: ${data.name}, Languages: ${data.proficient_languages}, Age: ${data.age}`);
         } else {
           alert('Failed to fetch profile');
@@ -84,7 +108,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col items-center p-8 bg-gray-100 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6">Welcome to the Home Page</h2>
+      <h2 className="text-3xl font-bold mb-6">Welcome, {username}!</h2>
 
       {/* Notifications Button */}
       <div className="mb-4">
