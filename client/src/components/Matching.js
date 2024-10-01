@@ -10,12 +10,12 @@ const Matching = () => {
 
   useEffect(() => {
     const fetchMatches = () => {
-      const token = localStorage.getItem('token'); // Get token from localStorage
+      const token = localStorage.getItem('token');
       fetch(`http://localhost:4000/api/matches?proficientLanguage=${proficientLanguage}&learningLanguage=${learningLanguage}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Include the token in the Authorization header
+          'Authorization': `Bearer ${token}`,
         },
       })
         .then((response) => {
@@ -68,38 +68,58 @@ const Matching = () => {
       });
   };
   
-
   return (
-    <div>
-      <h2>Matching</h2>
-      <div>
-        <label>Proficient Language: </label>
-        <select value={proficientLanguage} onChange={(e) => setProficientLanguage(e.target.value)}>
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h2 className="text-3xl font-bold mb-6">Matching</h2>
+      
+      <div className="mb-4">
+        <label className="block mb-2">Proficient Language:</label>
+        <select
+          value={proficientLanguage}
+          onChange={(e) => setProficientLanguage(e.target.value)}
+          className="p-2 border border-gray-300 rounded w-full"
+        >
           <option value="">Select</option>
           {languageOptions.map((lang) => (
             <option key={lang} value={lang}>{lang}</option>
           ))}
         </select>
       </div>
-      <div>
-        <label>Learning Language: </label>
-        <select value={learningLanguage} onChange={(e) => setLearningLanguage(e.target.value)}>
+
+      <div className="mb-6">
+        <label className="block mb-2">Learning Language:</label>
+        <select
+          value={learningLanguage}
+          onChange={(e) => setLearningLanguage(e.target.value)}
+          className="p-2 border border-gray-300 rounded w-full"
+        >
           <option value="">Select</option>
           {languageOptions.map((lang) => (
             <option key={lang} value={lang}>{lang}</option>
           ))}
         </select>
       </div>
+
       <div>
-        <h3>Matches</h3>
+        <h3 className="text-2xl font-bold mb-4">Matches</h3>
         <ul>
           {matches.length > 0 ? (
             matches.map((match) => (
-              <li key={match.id}>
-                {match.name} - {match.proficient_languages} - {match.learning_languages}
-                <div>
-                  <button onClick={() => alert(`View Profile of ${match.name}`)}>View Profile</button>
-                  <button onClick={() => handleAddFriend(match.id)}>Add Friend</button>
+              <li key={match.id} className="mb-4 p-4 bg-white rounded shadow">
+                <p>{match.name} - {match.proficient_languages} - {match.learning_languages}</p>
+                <div className="mt-2">
+                  <button
+                    onClick={() => alert(`View Profile of ${match.name}`)}
+                    className="bg-blue-500 text-white py-1 px-4 rounded mr-2 hover:bg-blue-600"
+                  >
+                    View Profile
+                  </button>
+                  <button
+                    onClick={() => handleAddFriend(match.id)}
+                    className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
+                  >
+                    Add Friend
+                  </button>
                 </div>
               </li>
             ))
@@ -108,8 +128,11 @@ const Matching = () => {
           )}
         </ul>
       </div>
+
       <Link to="/home">
-        <button>Home</button>
+        <button className="mt-6 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+          Home
+        </button>
       </Link>
     </div>
   );

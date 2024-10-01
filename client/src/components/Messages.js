@@ -7,7 +7,7 @@ const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [friends, setFriends] = useState([]);
-  const [activeChatUserIds, setActiveChatUserIds] = useState([]); // Track IDs of users in active chats
+  const [activeChatUserIds, setActiveChatUserIds] = useState([]);
 
   useEffect(() => {
     fetchChats();
@@ -22,8 +22,7 @@ const Messages = () => {
       .then((res) => res.json())
       .then((data) => {
         setChats(data);
-        // Extract user IDs from chats to filter friends
-        const userId = JSON.parse(atob(token.split('.')[1])).id; // Decode the token to get the current user's ID
+        const userId = JSON.parse(atob(token.split('.')[1])).id;
         const userIds = data.map(chat => (chat.user1_id === userId ? chat.user2_id : chat.user1_id));
         setActiveChatUserIds(userIds);
       })
@@ -63,7 +62,7 @@ const Messages = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          fetchChats(); // Refresh chats to update the list
+          fetchChats();
         }
       })
       .catch((err) => console.error('Error starting chat:', err));
@@ -92,27 +91,34 @@ const Messages = () => {
   };
 
   return (
-    <div>
-      <h2>Messages</h2>
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h2 className="text-3xl font-bold mb-6">Messages</h2>
 
       {/* Start a new chat */}
-      <div>
-        <h3>Start a Chat</h3>
+      <div className="mb-8">
+        <h3 className="text-2xl font-bold mb-4">Start a Chat</h3>
         {friends
-          .filter(friend => !activeChatUserIds.includes(friend.id)) // Filter out friends who are already in chats
+          .filter(friend => !activeChatUserIds.includes(friend.id))
           .map(friend => (
-            <button key={friend.id} onClick={() => startChat(friend.id)}>
+            <button
+              key={friend.id}
+              onClick={() => startChat(friend.id)}
+              className="bg-green-500 text-white py-1 px-4 rounded mr-2 hover:bg-green-600 mb-2"
+            >
               {friend.name}
             </button>
           ))}
       </div>
 
       {/* List of chats */}
-      <div>
-        <h3>Your Chats</h3>
+      <div className="mb-8">
+        <h3 className="text-2xl font-bold mb-4">Your Chats</h3>
         {chats.map((chat) => (
-          <div key={chat.id}>
-            <button onClick={() => { setSelectedChat(chat.id); fetchMessages(chat.id); }}>
+          <div key={chat.id} className="mb-2">
+            <button
+              onClick={() => { setSelectedChat(chat.id); fetchMessages(chat.id); }}
+              className="bg-blue-500 text-white py-1 px-4 rounded hover:bg-blue-600"
+            >
               Chat with {chat.friend_name}
             </button>
           </div>
@@ -121,11 +127,11 @@ const Messages = () => {
 
       {/* Chat messages */}
       {selectedChat && (
-        <div>
-          <h3>Chat</h3>
-          <div>
+        <div className="mb-8">
+          <h3 className="text-2xl font-bold mb-4">Chat</h3>
+          <div className="bg-white p-4 rounded shadow mb-4">
             {messages.map((msg) => (
-              <p key={msg.id}>
+              <p key={msg.id} className="mb-2">
                 <strong>{msg.sender_name}: </strong>{msg.message}
               </p>
             ))}
@@ -134,18 +140,25 @@ const Messages = () => {
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded mb-2"
           />
-          <button onClick={sendMessage}>Send</button>
+          <button
+            onClick={sendMessage}
+            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+          >
+            Send
+          </button>
         </div>
       )}
 
       <Link to="/home">
-        <button>Home</button>
+        <button className="mt-4 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+          Home
+        </button>
       </Link>
     </div>
   );
 };
 
 export default Messages;
-
 
