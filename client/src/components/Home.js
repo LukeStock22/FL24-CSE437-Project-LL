@@ -26,6 +26,7 @@ const Home = () => {
           setUsername(data.name);
         } else {
           alert('Failed to fetch username');
+          navigate('/');
         }
         setLoading(false);
       })
