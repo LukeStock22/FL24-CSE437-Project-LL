@@ -8,7 +8,8 @@ const Home = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [viewProfile, setViewProfile] = useState(null);
   const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
+  const [showProfileModal, setShowProfileModal] = useState(false); // Modal state
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -26,11 +27,11 @@ const Home = () => {
         } else {
           alert('Failed to fetch username');
         }
-        setLoading(false); // Data is fetched, stop loading
+        setLoading(false);
       })
       .catch((error) => {
         console.error('Error fetching username:', error);
-        setLoading(false); // Stop loading even if there's an error
+        setLoading(false);
       });
   }, []);
 
@@ -80,17 +81,16 @@ const Home = () => {
 
   const handleViewProfile = (userId) => {
     const token = localStorage.getItem('token');
-
-    fetch(`http://localhost:4000/api/profile/${userId}`, {
+    fetch(`http://localhost:4000/api/view-profile/${userId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
+        if (data) {
           setViewProfile(data);
-          alert(`Name: ${data.name}, Languages: ${data.proficient_languages}, Age: ${data.age}`);
+          setShowProfileModal(true); // Show the modal
         } else {
           alert('Failed to fetch profile');
         }
@@ -110,7 +110,7 @@ const Home = () => {
 
   // If loading is true, show a loading message or spinner
   if (loading) {
-    return <div className="text-center text-2xl">{/*Loading...*/}</div>;
+    return <div className="text-center text-2xl">Loading...</div>;
   }
 
   return (
@@ -182,13 +182,21 @@ const Home = () => {
         </Link>
       </div>
 
-      {/* Display profile information if viewProfile is set */}
-      {viewProfile && (
-        <div className="mt-8 p-4 bg-white rounded shadow-md w-full max-w-md">
-          <h3 className="text-xl font-bold mb-2">{viewProfile.name}'s Profile</h3>
-          <p className="text-sm mb-2">Proficient Languages: {viewProfile.proficient_languages}</p>
-          <p className="text-sm mb-2">Learning Languages: {viewProfile.learning_languages}</p>
-          <p className="text-sm">Age: {viewProfile.age}</p>
+      {/* Profile Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-80">
+            <h3 className="text-xl font-bold mb-2">{viewProfile.name}'s Profile</h3>
+            <p className="text-sm mb-2">Proficient Languages: {viewProfile.proficient_languages}</p>
+            <p className="text-sm mb-2">Learning Languages: {viewProfile.learning_languages}</p>
+            <p className="text-sm">Age: {viewProfile.age}</p>
+            <button
+              onClick={() => setShowProfileModal(false)}
+              className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
     </div>

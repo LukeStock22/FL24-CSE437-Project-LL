@@ -568,6 +568,7 @@ app.get('/api/messages/:chat_id', (req, res) => {
 // Route to get the profile info of a user (view profile)
 app.get('/api/view-profile/:user2_id', authenticateToken, (req, res) => {
   const user2_id = req.params.user2_id;
+  console.log(`Fetching profile for user ID: ${user2_id}`); // Debugging log
 
   // Query to fetch the user profile excluding the password
   const query = `
@@ -589,6 +590,7 @@ app.get('/api/view-profile/:user2_id', authenticateToken, (req, res) => {
     res.json(result[0]);
   });
 });
+
 
 
 
