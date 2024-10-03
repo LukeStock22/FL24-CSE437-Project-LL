@@ -7,6 +7,8 @@ import EditProfile from './components/EditProfile';
 import Messages from './components/Messages';
 import Matching from './components/Matching';
 import ViewProfile from './components/ViewProfile';
+import Landing from './components/Landing';
+import About from './components/About'
 import './tailwind.css';
 
 const App = () => {
@@ -14,7 +16,9 @@ const App = () => {
     
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/home" element={<Home />} /> {/* This points to Home.js */}
         <Route path="/edit-profile" element={<EditProfile />} />

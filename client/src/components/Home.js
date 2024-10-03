@@ -26,7 +26,7 @@ const Home = () => {
           setUsername(data.name);
         } else {
           alert('Failed to fetch username');
-          navigate('/');
+          navigate('/login');
         }
         setLoading(false);
       })
@@ -101,7 +101,7 @@ const Home = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/');
+    navigate('/login');
   };
 
   const toggleDropdown = () => {
