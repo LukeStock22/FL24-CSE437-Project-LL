@@ -36,7 +36,7 @@ const EditProfile = () => {
       } else if (res.status === 403 && data.message === 'Failed to authenticate token') {
         localStorage.removeItem('token');
         alert('Session expired. Please log in again.');
-        navigate('/');
+        navigate('/login');
       } else {
         alert('Failed to fetch profile data: ' + (data.message || 'Unknown error'));
       }
