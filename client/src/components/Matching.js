@@ -10,6 +10,35 @@ const Matching = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Fetch logged-in user's languages to autopopulate the filters
+    const fetchUserLanguages = () => {
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:4000/api/profile', {  // Updated endpoint
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Ensure the response contains the expected fields
+          if (data.success) {
+            setProficientLanguage(data.proficient_languages); // Updated to match API response
+            setLearningLanguage(data.learning_languages);     // Updated to match API response
+          } else {
+            console.error('Error fetching user languages:', data.message);
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching user languages:', error);
+        });
+    };
+
+    fetchUserLanguages();
+  }, []);
+
+  useEffect(() => {
     const fetchMatches = () => {
       const token = localStorage.getItem('token');
       fetch(`http://localhost:4000/api/matches?proficientLanguage=${proficientLanguage}&learningLanguage=${learningLanguage}`, {
@@ -59,7 +88,12 @@ const Matching = () => {
       })
       .then((data) => {
         if (data.success) {
-          alert(`Friend request sent to user ${user2_id}`);
+          // Immediately update the match's friend status to 'pending'
+          setMatches((prevMatches) => 
+            prevMatches.map((match) => 
+              match.id === user2_id ? { ...match, friend_status: 'pending' } : match
+            )
+          );
         } else {
           alert(data.message);
         }
@@ -68,7 +102,7 @@ const Matching = () => {
         console.error('Error sending friend request:', error);
       });
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h2 className="text-3xl font-bold mb-6">Matching</h2>
@@ -115,12 +149,21 @@ const Matching = () => {
                   >
                     View Profile
                   </button>
-                  <button
-                    onClick={() => handleAddFriend(match.id)}
-                    className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
-                  >
-                    Add Friend
-                  </button>
+                  {match.friend_status === 'pending' ? (
+                    <button
+                      className="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed"
+                      disabled
+                    >
+                      Pending
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleAddFriend(match.id)}
+                      className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
+                    >
+                      Add Friend
+                    </button>
+                  )}
                 </div>
               </li>
             ))
