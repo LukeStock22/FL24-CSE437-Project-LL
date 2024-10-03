@@ -253,17 +253,22 @@ app.post('/api/profile/update', async (req, res) => {
 
 
 //FETCH MATCHES
-// Fetch matches
 app.get('/api/matches', authenticateToken, (req, res) => {
   const { proficientLanguage, learningLanguage } = req.query;
-  const userId = req.user.id; // Assuming authenticateToken middleware adds user id to req
+  const userId = req.user.id;
 
   connection.query(
-    `SELECT * FROM users 
-     WHERE FIND_IN_SET(?, proficient_languages) 
-     AND FIND_IN_SET(?, learning_languages)
-     AND id != ?`, // Exclude the current user from the matches
-    [proficientLanguage, learningLanguage, userId],
+    `SELECT u.*, 
+            IF(f.status = 'pending', 'pending', 'none') AS friend_status
+     FROM users u
+     LEFT JOIN friendships f
+       ON ((f.user1_id = u.id AND f.user2_id = ?) 
+           OR (f.user2_id = u.id AND f.user1_id = ?))
+     WHERE FIND_IN_SET(?, u.proficient_languages)
+       AND FIND_IN_SET(?, u.learning_languages)
+       AND u.id != ?
+       AND (f.status IS NULL OR f.status != 'accepted')`,  // Exclude accepted friends
+    [userId, userId, proficientLanguage, learningLanguage, userId],
     (err, results) => {
       if (err) {
         console.error('Error executing query:', err);
@@ -273,6 +278,8 @@ app.get('/api/matches', authenticateToken, (req, res) => {
     }
   );
 });
+
+
 
 
 // FRIEND REQUEST
