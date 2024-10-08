@@ -1,12 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Select from 'react-select';
+
+// Language options for dropdowns
+const languageOptions = [
+  { value: 'English', label: 'English' },
+  { value: 'Spanish', label: 'Spanish' },
+  { value: 'French', label: 'French' },
+  { value: 'German', label: 'German' },
+  { value: 'Chinese', label: 'Chinese' },
+  { value: 'Japanese', label: 'Japanese' },
+  { value: 'Hindi', label: 'Hindi' },
+  { value: 'Russian', label: 'Russian' },
+  { value: 'Italian', label: 'Italian' },
+  { value: 'Arabic', label: 'Arabic' },
+  { value: 'Portuguese', label: 'Portuguese' },
+  { value: 'Korean', label: 'Korean' },
+  { value: 'Polish', label: 'Polish' },
+  { value: 'Dutch', label: 'Dutch' },
+  { value: 'Turkish', label: 'Turkish' },
+  { value: 'Greek', label: 'Greek' },
+  { value: 'Hebrew', label: 'Hebrew' },
+];
 
 const EditProfile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState({
     name: '',
-    proficientLanguages: '',
-    learningLanguages: '',
+    proficientLanguages: [],
+    learningLanguages: [],
     timezone: '',
     interests: '',
     age: ''
@@ -27,8 +49,8 @@ const EditProfile = () => {
       if (res.ok && data.success) {
         setProfile({
           name: data.name || '',
-          proficientLanguages: data.proficient_languages || '',
-          learningLanguages: data.learning_languages || '',
+          proficientLanguages: data.proficient_languages ? data.proficient_languages.split(',').map(lang => ({ value: lang, label: lang })) : [],
+          learningLanguages: data.learning_languages ? data.learning_languages.split(',').map(lang => ({ value: lang, label: lang })) : [],
           timezone: data.timezone || '',
           interests: data.interests || '',
           age: data.age || ''
@@ -53,9 +75,22 @@ const EditProfile = () => {
     });
   };
 
+  const handleLanguageChange = (selectedOptions, actionMeta) => {
+    setProfile({
+      ...profile,
+      [actionMeta.name]: selectedOptions || []
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+
+    const updatedProfile = {
+      ...profile,
+      proficientLanguages: profile.proficientLanguages.map(lang => lang.value).join(','),
+      learningLanguages: profile.learningLanguages.map(lang => lang.value).join(',')
+    };
 
     const res = await fetch('http://localhost:4000/api/profile/update', {
       method: 'POST',
@@ -63,7 +98,7 @@ const EditProfile = () => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(profile),
+      body: JSON.stringify(updatedProfile),
     });
 
     if (res.ok) {
@@ -88,26 +123,33 @@ const EditProfile = () => {
             className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
+
         <div>
           <label className="block mb-2">Proficient Languages:</label>
-          <input
-            type="text"
+          <Select
+            isMulti
             name="proficientLanguages"
+            options={languageOptions}
             value={profile.proficientLanguages}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            onChange={handleLanguageChange}
+            className="basic-multi-select"
+            classNamePrefix="select"
           />
         </div>
+
         <div>
           <label className="block mb-2">Learning Languages:</label>
-          <input
-            type="text"
+          <Select
+            isMulti
             name="learningLanguages"
+            options={languageOptions}
             value={profile.learningLanguages}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            onChange={handleLanguageChange}
+            className="basic-multi-select"
+            classNamePrefix="select"
           />
         </div>
+
         <div>
           <label className="block mb-2">Timezone:</label>
           <input

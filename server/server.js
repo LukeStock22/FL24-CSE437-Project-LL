@@ -4,6 +4,10 @@ import bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
 import mysql from 'mysql2';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -97,6 +101,7 @@ app.post('/api/signup', async (req, res) => {
   // Check if the user already exists
   connection.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
     if (err) {
+      console.error('Error executing SELECT query:', err); // Log the error
       return res.status(500).json({ success: false, message: 'Server error' });
     }
 
@@ -104,26 +109,32 @@ app.post('/api/signup', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email already exists' });
     }
 
-    // Hash the password before storing
-    const hashedPassword = await bcrypt.hash(password, 10);
+    try {
+      // Hash the password before storing
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert new user into the database
-    connection.query('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashedPassword], (err, result) => {
-      if (err) {
-        return res.status(500).json({ success: false, message: 'Error creating user' });
-      }
+      // Insert new user into the database
+      connection.query('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashedPassword], (err, result) => {
+        if (err) {
+          console.error('Error executing INSERT query:', err); // Log the error
+          return res.status(500).json({ success: false, message: 'Error creating user' });
+        }
 
-      // After creating the user, generate JWT token
-      const userId = result.insertId; // Get the newly created user's ID
-      const token = jwt.sign({ id: userId }, SECRET_KEY, { expiresIn: '4h' }); // Generate token with the user ID
+        // After creating the user, generate JWT token
+        const userId = result.insertId; // Get the newly created user's ID
+        const token = jwt.sign({ id: userId }, SECRET_KEY, { expiresIn: '4h' }); // Generate token with the user ID
 
-      // Send the token back to the client along with a success message
-      res.json({
-        success: true,
-        message: 'User created successfully',
-        token, // Send the JWT token
+        // Send the token back to the client along with a success message
+        res.json({
+          success: true,
+          message: 'User created successfully',
+          token, // Send the JWT token
+        });
       });
-    });
+    } catch (error) {
+      console.error('Error hashing password or generating token:', error); // Log any error with hashing or token generation
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
   });
 });
 
@@ -598,7 +609,79 @@ app.get('/api/view-profile/:user2_id', authenticateToken, (req, res) => {
   });
 });
 
+// Route to request a password reset
 
+app.post('/api/password-reset-request', (req, res) => {
+  const { email } = req.body;
+
+  // Find the user in the database
+  connection.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+    if (err || results.length === 0) {
+      console.error('Error finding user or email not found:', err || 'Email not found');
+      return res.status(400).json({ success: false, message: 'Email not found' });
+    }
+
+    const user = results[0];
+    
+    // Log token generation
+    try {
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      console.log('Generated Reset Token:', resetToken); // Logging the token
+      const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+
+      // Save the token and expiry to the user record
+      connection.query('UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?', 
+      [resetToken, resetTokenExpiry, user.id], (err) => {
+        if (err) {
+          console.error('Error saving reset token:', err);  // Add this line for logging
+          return res.status(500).json({ success: false, message: 'Error saving reset token' });
+        }
+
+        // Send email with the reset link
+        const transporter = nodemailer.createTransport({
+          service: getMailService(email), // Dynamically set the service
+          auth: {
+            user: process.env.EMAIL_USER, // Load from environment variables
+            pass: process.env.EMAIL_PASS,
+          },
+        });
+
+        const mailOptions = {
+          from: process.env.EMAIL_USER, // Load email user from environment
+          to: user.email,
+          subject: 'Password Reset',
+          text: `You requested a password reset. Click the following link to reset your password: http://localhost:3000/password-reset/${resetToken}`,
+        };
+
+        transporter.sendMail(mailOptions, (err, info) => {
+          if (err) {
+            console.error('Error sending email:', err);
+            return res.status(500).json({ success: false, message: 'Error sending email' });
+          }
+
+          res.json({ success: true, message: 'Password reset email sent' });
+        });
+      });
+    } catch (error) {
+      console.error('Error generating reset token:', error);
+      return res.status(500).json({ success: false, message: 'Error generating reset token' });
+    }
+  });
+});
+
+
+
+function getMailService(email) {
+  if (email.endsWith('@gmail.com')) {
+    return 'Gmail';
+  } else if (email.endsWith('@icloud.com')) {
+    return 'iCloud';
+  } else if (email.endsWith('@yahoo.com')) {
+    return 'Yahoo';
+  } else {
+    return 'Other'; // Default case or add more conditions for other services if necessary
+  }
+}
 
 
 
