@@ -93,3 +93,5 @@ npx tailwindcss init -p
 
  Line 32 in webpack.config.js use: ['style-loader', 'css-loader', 'postcss-loader'],
 
+# this should be downloaded for drop down select
+npm install react-select

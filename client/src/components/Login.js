@@ -19,7 +19,6 @@ const Login = () => {
       // Store the JWT token in localStorage
       localStorage.setItem('token', data.token); // Save token for later use
       console.log('Token:', data.token);
-      console.log("Logging In");
       setErrorMessage(''); // Clear any previous error messages
       navigate('/home'); // Redirecting to /home after successful login
     } else {
@@ -62,6 +61,9 @@ const Login = () => {
 
         <p className="mt-4 text-center">
           Don't have an account yet? <Link to="/signup" className="text-blue-500">Sign up here!</Link>
+        </p>
+        <p className="mt-4 text-center">
+          <Link to="/forgot-password" className="text-blue-500">Forgot Password?</Link>
         </p>
       </div>
     </div>

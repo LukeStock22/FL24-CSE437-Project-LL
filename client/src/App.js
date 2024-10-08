@@ -8,7 +8,9 @@ import Messages from './components/Messages';
 import Matching from './components/Matching';
 import ViewProfile from './components/ViewProfile';
 import Landing from './components/Landing';
-import About from './components/About'
+import About from './components/About';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import './tailwind.css';
 
 const App = () => {
@@ -25,6 +27,8 @@ const App = () => {
         <Route path="/messages" element={<Messages />} />
         <Route path="/matching" element={<Matching />} />
         <Route path="/view-profile/:id" element={<ViewProfile />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} /> 
+        <Route path="/password-reset/:token" element={<ResetPassword />} />
       </Routes>
     </Router>
   );
