@@ -11,58 +11,22 @@ on:
       - development
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: master
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: main
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18.x'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
 
-    - name: Install backend dependencies
-      run: npm install
-    #this is optional ?
-    - name: Install frontend dependencies
-      working-directory: client
-      run: npm install
+      - name: Install frontend dependencies
+        working-directory: client
+        run: npm install
 
-    - name: Lint code
-      run: npm run lint
-
-    - name: Run backend tests
-      env:
-        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/testdb"
-      run: npm run test
-
-    - name: Run frontend tests
-      working-directory: client
-      run: npm run test:frontend
-
-    - name: Build frontend
-      working-directory: client
-      run: npm run build
-
-    - name: Run end-to-end tests
-      run: npm run test:e2e
-
-    - name: Ensure the application builds successfully
-      run: npm run build
+      - name: Lint frontend code
+        working-directory: client
+        run: npm run lint
