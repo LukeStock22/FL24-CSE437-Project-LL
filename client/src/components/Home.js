@@ -98,9 +98,10 @@ const Home = () => {
 
  // Combine friends with their most recent messages
  const getRecentMessage = (friendId) => {
-   const chat = chats.find((chat) => chat.friend_id === friendId);
-   return chat && chat.last_message ? chat.last_message : 'No messages yet';
- };
+  const chat = chats.find((chat) => chat.friend_id === friendId);
+  return chat && chat.last_message ? chat.last_message : 'No messages yet';
+};
+
 
 
  const handleAction = (notificationId, action) => {

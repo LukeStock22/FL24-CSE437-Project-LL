@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { io } from 'socket.io-client';  // Import socket.io-client
+
+const socket = io('http://localhost:4000'); // Connect to the backend
 
 const Messages = () => {
   const [chats, setChats] = useState([]);
@@ -7,42 +10,57 @@ const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [friends, setFriends] = useState([]);
-  const [activeChatUserIds, setActiveChatUserIds] = useState([]);
-  const [messageOptions, setMessageOptions] = useState(null);
-  const [messageReactions, setMessageReactions] = useState({});
-  const [translationOptions, setTranslationOptions] = useState(null);
-  const [translationLanguage, setTranslationLanguage] = useState('');
   const [darkMode, setDarkMode] = useState(true);
 
-  const optionsRef = useRef(null);
-  const languageOptions = ['Spanish', 'French', 'German', 'Polish', 'Chinese', 'Japanese', 'Hindi'];
+  const hasJoinedChat = useRef(false); // To prevent multiple join events
 
   useEffect(() => {
-    fetchChats(); // Fetch chats first to update active chat user IDs
+    fetchChats();
   }, []);
 
   useEffect(() => {
-    fetchFriends(); // Fetch friends whenever chats are updated
-  }, [chats]); // Add `chats` as a dependency to refetch friends whenever the chats list changes
+    fetchFriends();
+  }, [chats]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (optionsRef.current && !optionsRef.current.contains(event.target)) {
-        setMessageOptions(null);
-        setTranslationOptions(null);
-      }
-    };
+    if (selectedChat && !hasJoinedChat.current) {
+      // Join the chat room only once
+      const token = localStorage.getItem('token');
+      const userId = JSON.parse(atob(token.split('.')[1])).id;
+      socket.emit('join_chat', { chat_id: selectedChat, user_id: userId });
 
-    if (messageOptions || translationOptions) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
+      hasJoinedChat.current = true; // Mark that the user has joined the chat
     }
+  }, [selectedChat]);
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+  useEffect(() => {
+    const handleReceiveMessage = (messageData) => {
+      setMessages(prevMessages => [...prevMessages, messageData]);
     };
-  }, [messageOptions, translationOptions]);
+
+    socket.on('receive_message', handleReceiveMessage);
+
+    // Cleanup the event listener on component unmount or when selectedChat changes
+    return () => {
+      socket.off('receive_message', handleReceiveMessage);
+    };
+  }, [selectedChat]);
+  useEffect(() => {
+    if (selectedChat) {
+        const token = localStorage.getItem('token');
+        fetch(`http://localhost:4000/api/messages/${selectedChat}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+        .then((res) => res.json())
+        .then((data) => {
+            setMessages(data); // Load the messages from the server
+        })
+        .catch((err) => console.error('Error fetching messages:', err));
+    }
+}, [selectedChat]);
+
 
   const fetchChats = () => {
     const token = localStorage.getItem('token');
@@ -52,9 +70,6 @@ const Messages = () => {
       .then((res) => res.json())
       .then((data) => {
         setChats(data);
-        const userId = JSON.parse(atob(token.split('.')[1])).id;
-        const userIds = data.map(chat => (chat.user1_id === userId ? chat.user2_id : chat.user1_id));
-        setActiveChatUserIds(userIds);
       })
       .catch((err) => console.error('Error fetching chats:', err));
   };
@@ -65,22 +80,8 @@ const Messages = () => {
       headers: { 'Authorization': `Bearer ${token}` },
     })
       .then((res) => res.json())
-      .then((data) => {
-        // Filter out friends who are already in an active chat
-        const filteredFriends = data.filter(friend => !activeChatUserIds.includes(friend.id));
-        setFriends(filteredFriends);
-      })
+      .then((data) => setFriends(data))
       .catch((err) => console.error('Error fetching friends:', err));
-  };
-
-  const fetchMessages = (chat_id) => {
-    const token = localStorage.getItem('token');
-    fetch(`http://localhost:4000/api/messages/${chat_id}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => setMessages(data))
-      .catch((err) => console.error('Error fetching messages:', err));
   };
 
   const startChat = (friend_id) => {
@@ -96,7 +97,7 @@ const Messages = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          fetchChats(); // Refresh chats to include the new chat
+          fetchChats(); // Refresh chats after starting a new chat
         }
       })
       .catch((err) => console.error('Error starting chat:', err));
@@ -106,59 +107,47 @@ const Messages = () => {
     if (!selectedChat || !newMessage) return;
 
     const token = localStorage.getItem('token');
-    fetch('http://localhost:4000/api/messages/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ chat_id: selectedChat, message: newMessage }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setNewMessage('');
-          fetchMessages(selectedChat);
-        }
-      })
-      .catch((err) => console.error('Error sending message:', err));
+    const userId = JSON.parse(atob(token.split('.')[1])).id;
+    const userName = JSON.parse(atob(token.split('.')[1])).name; // assuming you have the name in your JWT token
+
+    const messageData = {
+        chat_id: selectedChat,
+        sender_name: userName, // Use the real sender's name
+        message: newMessage,
+        sender_id: userId,
+    };
+
+    // Emit the message to the server
+    socket.emit('send_message', messageData);
+
+    // Clear the input field
+    setNewMessage('');
   };
 
-  const toggleMessageOptions = (messageId) => {
-    if (messageOptions === messageId) {
-      setMessageOptions(null);
-    } else {
-      setMessageOptions(messageId);
-    }
-  };
 
-  const handleReaction = (messageId, reaction) => {
-    setMessageReactions(prevReactions => ({
-      ...prevReactions,
-      [messageId]: reaction,
-    }));
-    setMessageOptions(null);
-  };
+  const renderMessage = (msg, index) => {
+    const token = localStorage.getItem('token');
+    const userId = JSON.parse(atob(token.split('.')[1])).id;
 
-  const handleTranslate = (messageId) => {
-    setTranslationOptions(messageId);
-  };
+    const isCurrentUser = msg.sender_id === userId;
+    const senderName = isCurrentUser ? 'You' : msg.sender_name;
 
-  const performTranslation = (messageId, language) => {
-    const translatedMessage = `${messages.find(msg => msg.id === messageId).message} (translated to ${language})`;
-    setMessages(prevMessages =>
-      prevMessages.map(msg =>
-        msg.id === messageId ? { ...msg, message: translatedMessage } : msg
-      )
+    return (
+      <div key={`${msg.sender_id}-${index}`} className={`relative mb-4 p-2 rounded ${isCurrentUser ? 'bg-blue-600 self-end' : 'bg-gray-700'} max-w-xs`}>
+        <strong>{senderName}: </strong>{msg.message}
+      </div>
     );
-    setTranslationOptions(null);
-  };
+};
+
+
+
+  
+
 
   return (
     <div className={`min-h-screen p-8 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
       <h2 className="text-3xl font-bold mb-6">Messages</h2>
 
-      {/* Dark Mode Toggle */}
       <button
         onClick={() => setDarkMode(!darkMode)}
         className="mb-4 bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-600"
@@ -166,7 +155,6 @@ const Messages = () => {
         Toggle Dark Mode
       </button>
 
-      {/* Start a new chat */}
       <div className="mb-8">
         <h3 className="text-2xl font-bold mb-4">Start a Chat</h3>
         {friends.map(friend => (
@@ -180,13 +168,12 @@ const Messages = () => {
         ))}
       </div>
 
-      {/* List of chats */}
       <div className="mb-8">
         <h3 className="text-2xl font-bold mb-4">Your Chats</h3>
         {chats.map((chat) => (
           <div key={chat.id} className="mb-2">
             <button
-              onClick={() => { setSelectedChat(chat.id); fetchMessages(chat.id); }}
+              onClick={() => { setSelectedChat(chat.id); }}
               className={`py-1 px-4 rounded ${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-200 text-black hover:bg-blue-300'}`}
             >
               Chat with {chat.friend_name}
@@ -195,40 +182,13 @@ const Messages = () => {
         ))}
       </div>
 
-      {/* Chat messages */}
       {selectedChat && (
         <div className="mb-8">
           <h3 className="text-2xl font-bold mb-4">Chat</h3>
           <div className={`p-4 rounded shadow mb-4 ${darkMode ? 'bg-gray-800' : 'bg-white'} max-h-80 overflow-y-auto`}>
-            {messages.map((msg) => (
-              <div key={msg.id} className={`relative mb-4 p-2 rounded ${msg.sender_name === 'You' ? 'bg-blue-600 self-end' : 'bg-gray-700'} max-w-xs`}>
-                <p onContextMenu={(e) => { e.preventDefault(); toggleMessageOptions(msg.id); }}>
-                  <strong>{msg.sender_name}: </strong>{msg.message}
-                </p>
-
-                {/* Options Popup */}
-                {messageOptions === msg.id && (
-                  <div ref={optionsRef} className="absolute bg-gray-200 text-black p-2 rounded shadow-lg top-0 right-0 z-10">
-                    <button onClick={() => handleReaction(msg.id, '❤️')} className="mr-2">❤️</button>
-                    <button onClick={() => handleReaction(msg.id, '👍')} className="mr-2">👍</button>
-                    <button onClick={() => handleReaction(msg.id, '👎')} className="mr-2">👎</button>
-                    <button onClick={() => handleReaction(msg.id, '❓')} className="mr-2">❓</button>
-                    <button onClick={() => handleReaction(msg.id, '❗')} className="mr-2">❗</button>
-                    <button onClick={() => handleTranslate(msg.id)} className="mr-2">🌐 Translate</button>
-                  </div>
-                )}
-
-                {/* Translation Popup */}
-                {translationOptions === msg.id && (
-                  <div ref={optionsRef} className="absolute bg-gray-200 text-black p-2 rounded shadow-lg top-0 right-0 z-10">
-                    {languageOptions.map(lang => (
-                      <button key={lang} onClick={() => performTranslation(msg.id, lang)} className="mr-2">{lang}</button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            {messages.map((msg, index) => renderMessage(msg, index))}
           </div>
+
           <input
             type="text"
             value={newMessage}
