@@ -16,11 +16,8 @@ const Messages = () => {
 
   useEffect(() => {
     fetchChats();
+    fetchFriends(); // Fetch friends once when the component is loaded
   }, []);
-
-  useEffect(() => {
-    fetchFriends();
-  }, [chats]);
 
   useEffect(() => {
     if (selectedChat && !hasJoinedChat.current) {
@@ -45,6 +42,7 @@ const Messages = () => {
       socket.off('receive_message', handleReceiveMessage);
     };
   }, [selectedChat]);
+
   useEffect(() => {
     if (selectedChat) {
         const token = localStorage.getItem('token');
@@ -59,8 +57,7 @@ const Messages = () => {
         })
         .catch((err) => console.error('Error fetching messages:', err));
     }
-}, [selectedChat]);
-
+  }, [selectedChat]);
 
   const fetchChats = () => {
     const token = localStorage.getItem('token');
@@ -103,12 +100,24 @@ const Messages = () => {
       .catch((err) => console.error('Error starting chat:', err));
   };
 
+  const handleChatClick = (friend) => {
+    const chat = chats.find(chat => chat.friend_id === friend.id);
+
+    if (chat) {
+      // If a chat already exists, set the selected chat
+      setSelectedChat(chat.id);
+    } else {
+      // If no chat exists, start a new chat with this friend
+      startChat(friend.id);
+    }
+  };
+
   const sendMessage = () => {
     if (!selectedChat || !newMessage) return;
 
     const token = localStorage.getItem('token');
     const userId = JSON.parse(atob(token.split('.')[1])).id;
-    const userName = JSON.parse(atob(token.split('.')[1])).name; // assuming you have the name in your JWT token
+    const userName = JSON.parse(atob(token.split('.')[1])).name;
 
     const messageData = {
         chat_id: selectedChat,
@@ -124,7 +133,6 @@ const Messages = () => {
     setNewMessage('');
   };
 
-
   const renderMessage = (msg, index) => {
     const token = localStorage.getItem('token');
     const userId = JSON.parse(atob(token.split('.')[1])).id;
@@ -137,12 +145,7 @@ const Messages = () => {
         <strong>{senderName}: </strong>{msg.message}
       </div>
     );
-};
-
-
-
-  
-
+  };
 
   return (
     <div className={`min-h-screen p-8 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
@@ -155,28 +158,17 @@ const Messages = () => {
         Toggle Dark Mode
       </button>
 
-      <div className="mb-8">
-        <h3 className="text-2xl font-bold mb-4">Start a Chat</h3>
-        {friends.map(friend => (
-          <button
-            key={friend.id}
-            onClick={() => startChat(friend.id)}
-            className={`py-1 px-4 rounded mr-2 mb-2 ${darkMode ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-green-200 text-black hover:bg-green-300'}`}
-          >
-            {friend.name}
-          </button>
-        ))}
-      </div>
-
+      {/* Remove Start a Chat section */}
+      
       <div className="mb-8">
         <h3 className="text-2xl font-bold mb-4">Your Chats</h3>
-        {chats.map((chat) => (
-          <div key={chat.id} className="mb-2">
+        {friends.map(friend => (
+          <div key={friend.id} className="mb-2">
             <button
-              onClick={() => { setSelectedChat(chat.id); }}
+              onClick={() => handleChatClick(friend)} // Handles both new and existing chats
               className={`py-1 px-4 rounded ${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-200 text-black hover:bg-blue-300'}`}
             >
-              Chat with {chat.friend_name}
+              Chat with {friend.name}
             </button>
           </div>
         ))}

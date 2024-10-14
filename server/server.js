@@ -11,7 +11,10 @@ import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
+const router = express.Router();
 dotenv.config();
+
+
 
 const app = express();
 const server = http.createServer(app);
@@ -489,43 +492,40 @@ app.get('/api/notifications', (req, res) => {
 
 // GET FRIENDS
 app.get('/api/friends', (req, res) => {
- const token = req.headers['authorization']?.split(' ')[1];
+  const token = req.headers['authorization']?.split(' ')[1];
 
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
 
- if (!token) {
-   return res.status(401).json({ message: 'Unauthorized' });
- }
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
 
+    const userId = decoded.id;
 
- jwt.verify(token, SECRET_KEY, (err, decoded) => {
-   if (err) {
-     return res.status(403).json({ message: 'Failed to authenticate token' });
-   }
+    // Query to get the list of friends along with their chat_id
+    const query = `
+      SELECT u.id, u.name, c.id AS chat_id
+      FROM users u
+      JOIN friendships f ON (f.user1_id = u.id OR f.user2_id = u.id) AND u.id != ?
+      LEFT JOIN chats c ON (c.user1_id = u.id OR c.user2_id = u.id) 
+                         AND (c.user1_id = ? OR c.user2_id = ?)
+      WHERE (f.user1_id = ? OR f.user2_id = ?) AND f.status = 'accepted'
+    `;
 
+    connection.query(query, [userId, userId, userId, userId, userId], (err, results) => {
+      if (err) {
+        console.error('Error fetching friends:', err);
+        return res.status(500).json({ message: 'Error fetching friends' });
+      }
 
-   const userId = decoded.id;
-
-
-   // Query to get the list of friends
-   const query = `
-     SELECT u.id, u.name
-     FROM users u
-     JOIN friendships f ON (f.user1_id = u.id OR f.user2_id = u.id) AND u.id != ?
-     WHERE (f.user1_id = ? OR f.user2_id = ?) AND f.status = 'accepted'
-   `;
-
-
-   connection.query(query, [userId, userId, userId], (err, results) => {
-     if (err) {
-       console.error('Error fetching friends:', err);
-       return res.status(500).json({ message: 'Error fetching friends' });
-     }
-
-
-     res.json(results);
-   });
- });
+      res.json(results); // Send friends with chat_id
+    });
+  });
 });
+
 
 // Socket.IO message handling
 io.on('connection', (socket) => {
@@ -720,6 +720,52 @@ app.get('/api/messages/:chat_id', (req, res) => {
  });
 });
 
+// Create a new chat
+app.post('/api/chats/start', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Get the token from the Authorization header
+  const { friend_id } = req.body; // The ID of the friend to start a chat with
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+
+    const userId = decoded.id; // The logged-in user's ID
+
+    // Check if a chat already exists between the two users
+    const checkChatQuery = `SELECT * FROM chats WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)`;
+
+    connection.query(checkChatQuery, [userId, friend_id, friend_id, userId], (err, results) => {
+      if (err) {
+        console.error('Error checking for existing chat:', err);
+        return res.status(500).json({ message: 'Error checking for existing chat' });
+      }
+
+      if (results.length > 0) {
+        // If a chat already exists, return the chat info
+        return res.json({ success: true, chat_id: results[0].id });
+      }
+
+      // Otherwise, create a new chat
+      const createChatQuery = 'INSERT INTO chats (user1_id, user2_id) VALUES (?, ?)';
+
+      connection.query(createChatQuery, [userId, friend_id], (err, result) => {
+        if (err) {
+          console.error('Error creating chat:', err);
+          return res.status(500).json({ message: 'Error creating chat' });
+        }
+
+        // Return the newly created chat's ID
+        res.json({ success: true, chat_id: result.insertId });
+      });
+    });
+  });
+});
+
 
 //VIEW PROFILE ATTEMPT NO. 1
 // Route to get the profile info of a user (view profile)
@@ -846,8 +892,6 @@ app.post('/api/password-reset/:token', async (req, res) => {
    }
  });
 });
-
-
 
 
 
