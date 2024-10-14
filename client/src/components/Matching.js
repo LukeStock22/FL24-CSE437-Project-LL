@@ -24,8 +24,8 @@ const Matching = () => {
         .then((data) => {
           // Ensure the response contains the expected fields
           if (data.success) {
-            setProficientLanguage(data.proficient_languages); // Updated to match API response
-            setLearningLanguage(data.learning_languages);     // Updated to match API response
+            setProficientLanguage(data.learning_languages); // Set the user's learning language to the proficient language dropdown
+            setLearningLanguage(data.proficient_languages);     // Updated to match API response
           } else {
             console.error('Error fetching user languages:', data.message);
           }

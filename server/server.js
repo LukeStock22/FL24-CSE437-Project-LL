@@ -4,13 +4,14 @@ import mysql from 'mysql2';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
-import 'dotenv/config';
+//import 'dotenv/config';
 import sgMail from '@sendgrid/mail';
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
-
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
@@ -26,9 +27,8 @@ const SECRET_KEY = 'veryveryclassified';
 const CLIENT_ID = '1067721697571-0s5nj85n2o6nqsj9momo6bjtpe1m50qk.apps.googleusercontent.com'; // Add your Client ID
 const client = new OAuth2Client(CLIENT_ID);
 
-
 //PUT SENDGRID API KEY HERE
-sgMail.setApiKey(SENDGRID_API_KEY);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const connection = mysql.createConnection({
  host: 'localhost',

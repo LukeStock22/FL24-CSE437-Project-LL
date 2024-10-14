@@ -7,20 +7,46 @@ const Signup = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
+  // Validate email and password
+  const validateEmail = (email) => {
+    const validDomains = ["comcast.net", "gmail.com", "yahoo.com", "icloud.com"];
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email) && validDomains.some(domain => email.endsWith(domain));
+  };
+
+  const validatePassword = (password) => {
+    return password.length >= 8;
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
+    setErrorMessage(''); // Clear previous error messages
+
+    // Validate inputs
+    if (!validateEmail(email)) {
+      setErrorMessage('Please enter a valid email with a proper domain (e.g., gmail.com).');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setErrorMessage('Password must be at least 8 characters long.');
+      return;
+    }
+
     const res = await fetch('http://localhost:4000/api/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
+
     const data = await res.json();
     if (data.success) {
       localStorage.setItem('token', data.token);
-      alert('Signup successful!');
+      //alert('Signup successful!');
       navigate('/edit-profile');
     } else {
-      setErrorMessage('Signup failed. Please try again.');
+      // Display the error message returned from the server
+      setErrorMessage(data.message || 'Signup failed. Please try again.');
     }
   };
 
@@ -62,4 +88,3 @@ const Signup = () => {
 };
 
 export default Signup;
-
