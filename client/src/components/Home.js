@@ -115,9 +115,10 @@ const Home = () => {
    })
      .then((response) => response.json())
      .then((data) => {
-       if (data.success) {
+        if (data.success) {
          setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-       } else {
+        }
+        else {
          alert(data.message);
        }
      })
@@ -173,6 +174,7 @@ const Home = () => {
            className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
          >
            Toggle Dark Mode
+           {/*{darkMode ? '☀️' : '🌙'} {/* Sun for dark mode, moon for light mode } */}
          </button>
          <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
            Logout

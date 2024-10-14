@@ -99,3 +99,9 @@ npm install react-select
 # socket.io setup 
 - in server : npm install socket.io
 - in client: npm install socket.io-client
+
+
+- view profile on freind requests is broken
+- Unadd friend feature
+- Ban feature
+- Check to make sure user actually creates profile--> they should be able to add friends unless they create their profile
