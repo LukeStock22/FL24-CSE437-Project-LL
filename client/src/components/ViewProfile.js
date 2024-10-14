@@ -49,7 +49,7 @@ const displayValue = (value) => {
   // Render the component
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      <h2 className="text-3xl font-bold mb-6">{displayValue(profile.name)}'s Profile</h2>
+      <h2 className="text-3xl font-bold mb-6">{displayValue(profile.name)}&apos;s Profile</h2>
       <p><strong>Proficient Languages:</strong> {displayValue(profile.proficient_languages)}</p>
       <p><strong>Learning Languages:</strong> {displayValue(profile.learning_languages)}</p>
       <p><strong>Age:</strong> {displayValue(profile.age)}</p>
