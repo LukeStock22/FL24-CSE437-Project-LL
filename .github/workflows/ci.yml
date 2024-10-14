@@ -30,3 +30,11 @@ jobs:
       - name: Lint frontend code
         working-directory: client
         run: npm run lint
+
+      - name: Install backend dependencies
+        working-directory: server
+        run: npm install
+
+     # - name: Check database connection
+     #   working-directory: server
+     #   run: node check-db-connection.js
