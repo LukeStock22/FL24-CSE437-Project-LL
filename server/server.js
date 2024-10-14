@@ -8,9 +8,14 @@ import 'dotenv/config';
 import sgMail from '@sendgrid/mail';
 import express from 'express';
 import cors from 'cors';
+import http from 'http';
+import { Server } from 'socket.io';
 
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } }); // Initialize Socket.IO
+
 app.use(express.json());
 app.use(cors());
 
@@ -522,6 +527,59 @@ app.get('/api/friends', (req, res) => {
  });
 });
 
+// Socket.IO message handling
+io.on('connection', (socket) => {
+  console.log('a user connected:', socket.id);
+
+  // Listen for a user joining the chat
+  socket.on('join_chat', ({ chat_id, user_id }) => {
+      socket.join(chat_id);
+      console.log(`User ${user_id} joined chat ${chat_id}`);
+  });
+
+  // Listen for incoming messages
+  socket.on('send_message', (messageData) => {
+    const { chat_id, message, sender_id } = messageData;
+  
+    // Query to get sender's name from the users table
+    const getSenderNameQuery = 'SELECT name FROM users WHERE id = ?';
+  
+    connection.query(getSenderNameQuery, [sender_id], (err, result) => {
+      if (err) {
+        console.error('Error fetching sender name:', err);
+        return;
+      }
+  
+      const sender_name = result[0].name; // Fetch sender's name
+  
+      // Save the message to the database
+      const query = 'INSERT INTO messages (chat_id, sender_id, message) VALUES (?, ?, ?)';
+      connection.query(query, [chat_id, sender_id, message], (err) => {
+        if (err) {
+          console.error('Error saving message:', err);
+          return;
+        }
+  
+        // Broadcast the message to everyone in the chat room
+        io.to(chat_id).emit('receive_message', {
+          chat_id,
+          sender_name, // Use the fetched sender_name from the database
+          message,
+          sender_id
+        });
+      });
+    });
+  });
+  
+
+
+
+  socket.on('disconnect', () => {
+      console.log('user disconnected', socket.id);
+  });
+});
+
+
 
 // GET ALL CHATS
 // GET ALL CHATS (with last message)
@@ -795,6 +853,6 @@ app.post('/api/password-reset/:token', async (req, res) => {
 
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
  console.log(`Backend server is running on port ${PORT}`);
 });

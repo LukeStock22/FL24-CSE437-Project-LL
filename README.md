@@ -95,3 +95,7 @@ npx tailwindcss init -p
 
 # this should be downloaded for drop down select
 npm install react-select
+
+# socket.io setup 
+- in server : npm install socket.io
+- in client: npm install socket.io-client
