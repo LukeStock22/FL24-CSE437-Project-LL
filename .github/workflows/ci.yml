@@ -1,4 +1,4 @@
-name: Minimal CI Workflow
+name: Frontend Linting Workflow
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
       - development
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,32 +23,10 @@ jobs:
       with:
         node-version: '18.x'
 
-    - name: Install backend dependencies
+    - name: Install frontend dependencies
+      working-directory: client
       run: npm install
 
-    # Optional: Uncomment this if the frontend setup is needed from the start
-    # - name: Install frontend dependencies
-    #   working-directory: client
-    #   run: npm install
-
-    # Basic linting and backend test commands
-    - name: Lint code
+    - name: Lint frontend code
+      working-directory: client
       run: npm run lint
-
-    - name: Run backend tests
-      run: npm run test
-
-    # Frontend and E2E tests can be added later after ensuring the basics work
-    # - name: Run frontend tests
-    #   working-directory: client
-    #   run: npm run test:frontend
-
-    # - name: Build frontend
-    #   working-directory: client
-    #   run: npm run build
-
-    # - name: Run end-to-end tests
-    #   run: npm run test:e2e
-
-    # - name: Ensure the application builds successfully
-    #   run: npm run build
