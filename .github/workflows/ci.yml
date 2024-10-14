@@ -1,4 +1,4 @@
-name: Frontend Linting Workflow
+name: Minimal CI Workflow
 
 on:
   push:
@@ -15,18 +15,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18.x'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
 
-    - name: Install frontend dependencies
-      working-directory: client
-      run: npm install
+      - name: Install frontend dependencies
+        working-directory: client
+        run: npm install
 
-    - name: Lint frontend code
-      working-directory: client
-      run: npm run lint
+      - name: Lint frontend code
+        working-directory: client
+        run: npm run lint
