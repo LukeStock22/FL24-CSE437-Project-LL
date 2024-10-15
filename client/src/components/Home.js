@@ -15,7 +15,6 @@ const Home = () => {
  const [showProfileModal, setShowProfileModal] = useState(false);
  const [darkMode, setDarkMode] = useState(true); // Dark mode state
 
-
  // Fetch profile info
  useEffect(() => {
    const token = localStorage.getItem('token');
@@ -157,6 +156,25 @@ const Home = () => {
    setUnreadCount(0);
  };
 
+ const handleRemoveFriend = (friendId) => {
+  const token = localStorage.getItem('token');
+  fetch(`http://localhost:4000/api/removeFriend/${friendId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data) {
+        setFriends((prev) => prev.filter((friend) => friend.id !== friendId));
+      } else {
+        alert('Failed to remove friend');
+      }
+    })
+    .catch((error) => console.error('Error removing friend:', error));
+};
 
  if (loading) {
    return <div className="text-center text-2xl">Loading...</div>;
@@ -188,9 +206,9 @@ const Home = () => {
 
      {/* Main Content */}
      <div className="flex flex-grow mt-4 p-4">
-       {/* Friends/Messages Section */}
+       {/* Messages Section */}
        <div className={`w-1/4 p-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
-         <h2 className="text-xl font-bold mb-4">Friends/Messages</h2>
+         <h2 className="text-xl font-bold mb-4">Messages</h2>
          <ul>
            {friends.length > 0 ? (
              friends.map((friend) => (
@@ -245,12 +263,38 @@ const Home = () => {
        </div>
 
 
-       {/* Find Matches Section */}
+       {/* Find Matches and Manage Friends Section */}
        <div className={`w-1/4 p-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md`}>
          <h2 className="text-xl font-bold mb-4">Find Matches</h2>
          <Link to="/matching">
            <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Add Friends</button>
          </Link>
+         <h2 className="text-xl font-bold mt-8 mb-4">Manage Friends</h2>
+            <ul>
+              {friends.length > 0 ? (
+              friends.map((friend) => (
+                <li key={friend.id} className="p-2 border-b">
+                 <span>{friend.name}</span>
+                 <div className="space-x-2">
+                  <button
+                    onClick={() => handleViewProfile(friend.id)}
+                    className="bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600"
+                  >
+                    View Profile
+                  </button>
+                  <button
+                    onClick={() => handleRemoveFriend(friend.id)}
+                    className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
+                  >
+                    Remove
+                  </button>
+                </div>
+                </li>
+              ))
+            ) : (
+              <p>No friends added yet</p>
+            )}
+            </ul>
        </div>
      </div>
 
