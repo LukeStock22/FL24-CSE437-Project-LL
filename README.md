@@ -34,6 +34,9 @@ ADD COLUMN age INT;
 npm install jsonwebtoken
 - Secret key currently hard coded, should be moved to a .env file
 
+# IN CLIENT
+npm install prop-types
+
 # SQL that can be used to check friendship
 SELECT * FROM friendships
 WHERE (user1_id = ? AND user2_id = ?)
