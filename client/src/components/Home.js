@@ -258,7 +258,7 @@ const Home = () => {
      {/* Profile Modal */}
      {showProfileModal && (
        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-         <div className="bg-white p-6 rounded shadow-lg w-80">
+         <div className="bg-white p-6 rounded shadow-lg w-80 text-black">
            <h3 className="text-xl font-bold mb-2">{viewProfile.name}&apos;s Profile</h3>
            <p className="text-sm mb-2">Proficient Languages: {viewProfile.proficient_languages}</p>
            <p className="text-sm mb-2">Learning Languages: {viewProfile.learning_languages}</p>
