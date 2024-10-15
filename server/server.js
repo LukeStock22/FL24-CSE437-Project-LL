@@ -526,6 +526,41 @@ app.get('/api/friends', (req, res) => {
   });
 });
 
+// Remove friend
+app.delete('/api/removeFriend/:friendId', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  const friendId = req.params.friendId; 
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+
+    const userId = decoded.id;
+
+    const query = `
+      DELETE FROM friendships 
+      WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)
+    `;
+
+    connection.query(query, [userId, friendId, friendId, userId], (err, results) => {
+      if (err) {
+        console.error('Error removing friend:', err);
+        return res.status(500).json({ message: 'Error removing friend' });
+      }
+
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ message: 'Friendship not found' });
+      }
+
+      res.json({ message: 'Friend removed successfully' });
+    });
+  });
+});
 
 // Socket.IO message handling
 io.on('connection', (socket) => {
