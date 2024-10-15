@@ -195,7 +195,7 @@ const Home = () => {
     .catch((error) => console.error('Error removing friend:', error));
 };
 
-// Needs fixing to block users
+//to block a user
 const handleBlockUser = (userId) => {
   const token = localStorage.getItem('token');
   console.log("user id", userId)
