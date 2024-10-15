@@ -55,11 +55,19 @@ const displayValue = (value) => {
       <p><strong>Age:</strong> {displayValue(profile.age)}</p>
       <p><strong>Interests:</strong> {displayValue(profile.interests_hobbies)}</p>
   
-      <Link to="/matching">
-        <button className="mt-6 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
-          Back to Matching
-        </button>
-      </Link>
+      <div className="flex space-x-4 mt-4"> {/* Add flex and space-y for vertical spacing */}
+        <Link to="/matching">
+          <button className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+            Back to Matching
+          </button>
+        </Link>
+        <Link to="/home">
+          <button className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+            Home
+          </button>
+        </Link>
+      </div>
+
     </div>
   );
   

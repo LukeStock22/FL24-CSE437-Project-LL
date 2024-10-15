@@ -963,6 +963,24 @@ app.post('/api/password-reset/:token', async (req, res) => {
 //   });
 // });
 
+//Fetch all users for search functionality
+app.get('/api/users', (req, res) => {
+  connection.query('SELECT * FROM users', (err, results) => {
+    if (err) {
+        console.error('Error executing query:', err);
+        return res.status(500).send('Server Error');
+    }
+    if (results.length === 0) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      users: results,
+    });
+  });
+});
+
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
  console.log(`Backend server is running on port ${PORT}`);
