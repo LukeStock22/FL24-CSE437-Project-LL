@@ -929,39 +929,74 @@ app.post('/api/password-reset/:token', async (req, res) => {
 });
 
 //Block user 
-// app.post('/api/block/:userId', (req, res) => {
-//   const token = req.headers['authorization']?.split(' ')[1];
-//   if (!token) {
-//     return res.status(401).json({ success: false, message: 'No token provided' });
-//   }
+app.post('/api/block', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No token provided' });
+  }
 
-//   jwt.verify(token, SECRET_KEY, (err, decoded) => {
-//       if (err) {
-//           return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
-//       }
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (err) {
+          return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
+      }
 
-//       const blockerId = decoded.id; //ID of user doing the blocking
-//       const blockedUserId = req.body.userId; //ID of user being blocked
+      const blockerId = decoded.id; //ID of user doing the blocking
+      const blockedUserId = req.body.userId; //ID of user being blocked
 
-//       if (!blockedUserId) {
-//         return res.status(400).json({ success: false, message: 'User ID to block is required' });
-//       }
+      if (!blockedUserId) {
+        return res.status(400).json({ success: false, message: 'User ID to block is required' });
+      }
 
-//       const query = `
-//         INSERT INTO blocks (blocker_id, blocked_user_id)
-//         VALUES (?, ?);
-//       `;
+      const checkFriendshipQuery = `
+        SELECT * FROM friendships 
+        WHERE (user1_id = ? AND user2_id = ? AND status = 'accepted') 
+        OR (user1_id = ? AND user2_id = ? AND status = 'accepted');
+      `;
 
-//       connection.query(query, [blockerId, blockedUserId], (err, result) => {
-//         if (err) {
-//           console.error('Error blocking user:', err);
-//           return res.status(500).json({ success: false, message: 'Error blocking user' });
-//         }
+      connection.query(
+        checkFriendshipQuery, 
+      [blockerId, blockedUserId, blockedUserId, blockerId],
+      (err, friendshipResult) => {
+        if (err) {
+          console.error('Error checking friendship:', err);
+          return res.status(500).json({ success: false, message: 'Error checking friendship' });
+        }
+
+        if (friendshipResult.length > 0) {
+          const deleteFriendshipQuery = `
+            DELETE FROM friendships 
+            WHERE (user1_id = ? AND user2_id = ? AND status = 'accepted') 
+            OR (user1_id = ? AND user2_id = ? AND status = 'accepted');
+          `;
+
+          connection.query(
+            deleteFriendshipQuery,
+            [blockerId, blockedUserId, blockedUserId, blockerId],
+            (err, deleteResult) => {
+              if (err) {
+                console.error('Error deleting friendship:', err);
+                return res.status(500).json({ success: false, message: 'Error deleting friendship' });
+              }
+              console.log('Friendship deleted successfully');
+            });
+          }
+        });
+
+      const query = `
+        INSERT INTO blocks (blocker_id, blocked_id)
+        VALUES (?, ?);
+      `;
+
+      connection.query(query, [blockerId, blockedUserId], (err, result) => {
+        if (err) {
+          console.error('Error blocking user:', err);
+          return res.status(500).json({ success: false, message: 'Error blocking user' });
+        }
   
-//         res.json({ success: true, message: 'User blocked successfully' });
-//       });
-//   });
-// });
+        res.json({ success: true, message: 'User blocked successfully' });
+      });
+  });
+});
 
 //Fetch all users for search functionality
 app.get('/api/users', (req, res) => {
