@@ -310,7 +310,6 @@ const handleBlockUser = (userId) => {
 
        {/* Find Matches and Manage Friends Section */}
        <div className={`w-1/4 p-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md`}>
-        <h2 className="text-xl font-bold mb-4">Search Users</h2>
         <SearchUsers users = {users} />
 
          <h2 className="text-xl font-bold mb-4">Find Matches</h2>

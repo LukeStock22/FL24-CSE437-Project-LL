@@ -242,6 +242,7 @@ app.get('/api/profile', (req, res) => {
          const user = results[0];
          res.json({
              success: true, //Currently hardcoding success as we allow null values
+             id: user.id,
              name: user.name,
              proficient_languages: user.proficient_languages,
              learning_languages: user.learning_languages,
