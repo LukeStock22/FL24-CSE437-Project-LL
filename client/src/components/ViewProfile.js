@@ -46,6 +46,43 @@ const displayValue = (value) => {
     return value ? value : 'N/A';  // Handle non-array values
   };
   
+  const handleAddFriend = (user2_id) => {
+    const token = localStorage.getItem('token');
+  
+    fetch('http://localhost:4000/api/friend-request', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ user2_id }),
+    })
+      .then((response) => {
+        if (response.status === 401) {
+          alert('Unauthorized. Please log in.');
+          return;
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.success) {
+          // Immediately update the match's friend status to 'pending'
+          // setMatches((prevMatches) => 
+          //   prevMatches.map((match) => 
+          //     match.id === user2_id ? { ...match, friend_status: 'pending' } : match
+          //   )
+          // );
+          console.log("added friend")
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch((error) => {
+        console.error('Error sending friend request:', error);
+      });
+  };
+
+
   // Render the component
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -56,6 +93,18 @@ const displayValue = (value) => {
       <p><strong>Interests:</strong> {displayValue(profile.interests_hobbies)}</p>
   
       <div className="flex space-x-4 mt-4"> {/* Add flex and space-y for vertical spacing */}
+        <button
+            onClick={() => handleAddFriend(id)}
+            className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
+          >
+            Add Friend
+          </button>
+          {/* <button
+            // onClick={() => handleBlockUser(viewProfile.id)}
+            className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+          >
+            Block
+          </button> */}
         <Link to="/matching">
           <button className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
             Back to Matching

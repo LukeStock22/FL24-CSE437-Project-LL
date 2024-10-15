@@ -105,7 +105,6 @@ const Home = () => {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      console.log("users: ", data.users)
       setUsers(data.users);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -197,29 +196,31 @@ const Home = () => {
 };
 
 // Needs fixing to block users
-// const handleBlockUser = (userId) => {
-//   const token = localStorage.getItem('token');
-//   fetch(`/api/block/${userId}`, {
-//     method: 'POST', //need to account for delete in friendship scenario
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'Authorization': `Bearer ${token}`,
-//     },
-//   })
-//     .then((response) => {
-//       if (!response.ok) {
-//         throw new Error('Failed to block user');
-//       }
-//       return response.json();
-//     })
-//     .then((data) => {
-//       console.log('User blocked successfully:', data);
-//       setShowProfileModal(false); 
-//     })
-//     .catch((error) => {
-//       console.error('Error blocking user:', error);
-//     });
-// };
+const handleBlockUser = (userId) => {
+  const token = localStorage.getItem('token');
+  console.log("user id", userId)
+  fetch(`http://localhost:4000/api/block`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({userId}) //sending userId to be blocked
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Failed to block user');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log('User blocked successfully:', data);
+      setShowProfileModal(false); 
+    })
+    .catch((error) => {
+      console.error('Error blocking user:', error);
+    });
+};
 
  if (loading) {
    return <div className="text-center text-2xl">Loading...</div>;
@@ -362,14 +363,14 @@ const Home = () => {
            <p className="text-sm mb-2">Proficient Languages: {viewProfile.proficient_languages}</p>
            <p className="text-sm mb-2">Learning Languages: {viewProfile.learning_languages}</p>
            <p className="text-sm">Age: {viewProfile.age}</p>
-           {/* <div className="mt-4 space-x-2"> //block user button
+           <div className="mt-4 space-x-2">
             <button
               onClick={() => handleBlockUser(viewProfile.id)}
               className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
             >
               Block
             </button>
-          </div> */}
+          </div>
          </div>
        </div>
      )}
