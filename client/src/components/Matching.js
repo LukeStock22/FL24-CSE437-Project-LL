@@ -9,6 +9,8 @@ const Matching = () => {
   const [timezones, setTimezones] = useState([]);
   const [ages, setAges] = useState([]);
   const [filteredMatches, setFilteredMatches] = useState([]);
+  const [blockedByUsers, setBlockedByUsers] = useState([]);
+  const [blockedUsers, setBlockedUsers] = useState([]);
 
   const languageOptions = ['English', 'Spanish', 'French', 'Polish', 'Italian', 'Mandarin', 'German', 'Hindi', 'Russian'];
   const timezoneOptions = [
@@ -94,6 +96,85 @@ const Matching = () => {
   useEffect(() => {
     handleAgesFilter(); 
   }, [ages]);
+
+  // getting list of users who have blocked the current user
+  useEffect(() => {
+    const fetchBlockedBy = () => {
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:4000/api/blockedBy', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then((response) => {
+          if (response.status === 401) {
+            alert('Unauthorized. Please log in.');
+            return;
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            console.log("blocked by: ", data.blockedBy)
+            setBlockedByUsers(data.blockedBy); //list of blocked by user IDs
+          } else {
+            console.error('Error fetching blocked users:', data.message);
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching blocked by users:', error);
+        });
+    };
+
+    fetchBlockedBy();
+  }, []);
+
+  // getting list of users who current user has blocked
+  useEffect(() => {
+    const fetchBlocked = () => {
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:4000/api/blocked', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then((response) => {
+          if (response.status === 401) {
+            alert('Unauthorized. Please log in.');
+            return;
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            console.log("blocked: ", data.blocked)
+            setBlockedUsers(data.blocked); //list of blocked by user IDs
+          } else {
+            console.error('Error fetching blocked users:', data.message);
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching blocked users:', error);
+        });
+    };
+    fetchBlocked();
+  }, []);
+
+  useEffect(() => {
+    // filtering matches to exclude blocked by users
+    const filtered = matches.filter((match) => !blockedByUsers.includes(match.id));
+    setFilteredMatches(filtered);
+  }, [matches, blockedByUsers]);
+
+  useEffect(() => {
+    // filtering matches to exclude blocked users
+    const filtered = matches.filter((match) => !blockedUsers.includes(match.id));
+    setFilteredMatches(filtered);
+  }, [matches, blockedUsers]);
 
 
   const handleAddFriend = (user2_id) => {

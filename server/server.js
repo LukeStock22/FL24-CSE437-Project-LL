@@ -1016,6 +1016,89 @@ app.get('/api/users', (req, res) => {
   });
 });
 
+//Check who user is blocked by
+app.get('/api/blockedBy', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Get the token from headers
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    let currentUserId;
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY); // Replace 'your_secret_key' with your actual secret
+        currentUserId = decoded.id; // Ensure your token includes the user ID
+    } catch (err) {
+        console.error('Token verification error:', err);
+        return res.status(401).json({ success: false, message: 'Invalid token' });
+    }
+
+    const query = 'SELECT blocker_id FROM blocks WHERE blocked_id = ?';
+    connection.query(query, [currentUserId], (err, results) => {
+        if (err) {
+            console.error('Error executing query:', err);
+            return res.status(500).json({ success: false, message: 'Server Error' });
+        }
+        res.status(200).json({
+            success: true,
+            blockedBy: results.map(row => row.blocker_id), // Directly return the mapped array
+        });
+    });
+});
+
+// Check who user has blocked
+app.get('/api/blocked', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Get the token from headers
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    let currentUserId;
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY); // Replace 'your_secret_key' with your actual secret
+        currentUserId = decoded.id; // Ensure your token includes the user ID
+    } catch (err) {
+        console.error('Token verification error:', err);
+        return res.status(401).json({ success: false, message: 'Invalid token' });
+    }
+
+    const query = 'SELECT blocked_id FROM blocks WHERE blocker_id = ?';
+    connection.query(query, [currentUserId], (err, results) => {
+        if (err) {
+            console.error('Error executing query:', err);
+            return res.status(500).json({ success: false, message: 'Server Error' });
+        }
+        res.status(200).json({
+            success: true,
+            blocked: results.map(row => row.blocked_id), // Directly return the mapped array
+        });
+    });
+});
+
+// //Unblock a user
+// app.delete('/api/unblock', (req, res) => {
+//   const { blockedId } = req.body; // Assuming the ID of the user to unblock is sent in the request body
+//   const currentUserId = req.user.id; // Assuming user ID is stored in the session or token
+
+//   const query = 'DELETE FROM blocks WHERE blocker_id = ? AND blocked_id = ?';
+//   connection.query(query, [currentUserId, blockedId], (err, results) => {
+//       if (err) {
+//           console.error('Error executing query:', err);
+//           return res.status(500).send('Server Error');
+//       }
+//       if (results.affectedRows === 0) {
+//           return res.status(404).json({ success: false, message: 'Block not found.' });
+//       }
+
+//       res.json({
+//           success: true,
+//           message: 'User unblocked successfully.',
+//       });
+//   });
+// });
+
+
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
  console.log(`Backend server is running on port ${PORT}`);

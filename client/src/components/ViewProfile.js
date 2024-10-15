@@ -82,6 +82,31 @@ const displayValue = (value) => {
       });
   };
 
+  // const handleBlockUser = (user2_id) => {
+  //   const token = localStorage.getItem('token');
+
+  //   fetch(`http://localhost:4000/api/block`, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'Authorization': `Bearer ${token}`,
+  //     },
+  //     body: JSON.stringify({user2_id}) //sending userId to be blocked
+  //   })
+  //     .then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error('Failed to block user');
+  //       }
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       console.log('User blocked successfully:', data); 
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error blocking user:', error);
+  //     });
+  // };
+
 
   // Render the component
   return (
@@ -100,7 +125,7 @@ const displayValue = (value) => {
             Add Friend
           </button>
           {/* <button
-            // onClick={() => handleBlockUser(viewProfile.id)}
+            onClick={() => handleBlockUser(id)}
             className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
           >
             Block
