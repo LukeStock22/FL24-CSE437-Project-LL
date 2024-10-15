@@ -176,10 +176,34 @@ const Home = () => {
     .catch((error) => console.error('Error removing friend:', error));
 };
 
+// Needs fixing to block users
+// const handleBlockUser = (userId) => {
+//   const token = localStorage.getItem('token');
+//   fetch(`/api/block/${userId}`, {
+//     method: 'POST', //need to account for delete in friendship scenario
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Authorization': `Bearer ${token}`,
+//     },
+//   })
+//     .then((response) => {
+//       if (!response.ok) {
+//         throw new Error('Failed to block user');
+//       }
+//       return response.json();
+//     })
+//     .then((data) => {
+//       console.log('User blocked successfully:', data);
+//       setShowProfileModal(false); 
+//     })
+//     .catch((error) => {
+//       console.error('Error blocking user:', error);
+//     });
+// };
+
  if (loading) {
    return <div className="text-center text-2xl">Loading...</div>;
  }
-
 
  return (
    <div className={`flex flex-col min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
@@ -273,8 +297,8 @@ const Home = () => {
             <ul>
               {friends.length > 0 ? (
               friends.map((friend) => (
-                <li key={friend.id} className="p-2 border-b">
-                 <span>{friend.name}</span>
+                <li key={friend.id} className="p-2 border-b flex justify-between items-center">
+                 <span className="flex-grow text-center">{friend.name}</span>
                  <div className="space-x-2">
                   <button
                     onClick={() => handleViewProfile(friend.id)}
@@ -298,21 +322,31 @@ const Home = () => {
        </div>
      </div>
 
+     
 
      {/* Profile Modal */}
      {showProfileModal && (
        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-         <div className="bg-white p-6 rounded shadow-lg w-80 text-black">
+         <div className="bg-white p-6 rounded shadow-lg w-80 text-black relative">
+          <button
+              onClick={() => setShowProfileModal(false)}
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 focus:outline-none text-2xl p-2" // Positioning the button in the upper right corner
+              aria-label="Close"
+          >
+              &times;
+          </button>
            <h3 className="text-xl font-bold mb-2">{viewProfile.name}&apos;s Profile</h3>
            <p className="text-sm mb-2">Proficient Languages: {viewProfile.proficient_languages}</p>
            <p className="text-sm mb-2">Learning Languages: {viewProfile.learning_languages}</p>
            <p className="text-sm">Age: {viewProfile.age}</p>
-           <button
-             onClick={() => setShowProfileModal(false)}
-             className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-           >
-             Close
-           </button>
+           {/* <div className="mt-4 space-x-2"> //block user button
+            <button
+              onClick={() => handleBlockUser(viewProfile.id)}
+              className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+            >
+              Block
+            </button>
+          </div> */}
          </div>
        </div>
      )}

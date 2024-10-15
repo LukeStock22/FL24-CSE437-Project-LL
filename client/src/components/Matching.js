@@ -1,12 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 
 const Matching = () => {
   const [proficientLanguage, setProficientLanguage] = useState('');
   const [learningLanguage, setLearningLanguage] = useState('');
   const [matches, setMatches] = useState([]);
+  const [timezones, setTimezones] = useState([]);
+  const [ages, setAges] = useState([]);
+  const [filteredMatches, setFilteredMatches] = useState([]);
 
   const languageOptions = ['English', 'Spanish', 'French', 'Polish', 'Italian', 'Mandarin', 'German', 'Hindi', 'Russian'];
+  const timezoneOptions = [
+    { value: 'EST', label: 'EST (Eastern Standard Time)' },
+    { value: 'CST', label: 'CST (Central Standard Time)' },
+    { value: 'PST', label: 'PST (Pacific Standard Time)' }
+  ];
+  const ageOptions = [
+    { value: '18-24', label: '18-24' },
+    { value: '25-34', label: '25-34' },
+    { value: '35-44', label: '35-44' },
+    { value: '45-54', label: '45-54' },
+    { value: '55-64', label: '55-64' },
+    { value: '65+', label: '65+' }
+  ];
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,6 +75,7 @@ const Matching = () => {
         })
         .then((data) => {
           setMatches(data);
+          setFilteredMatches(data);
         })
         .catch((error) => {
           console.error('Error fetching matches:', error);
@@ -67,6 +86,15 @@ const Matching = () => {
       fetchMatches();
     }
   }, [proficientLanguage, learningLanguage]);
+
+  useEffect(() => {
+    handleTimezoneFilter(); 
+  }, [timezones]);
+
+  useEffect(() => {
+    handleAgesFilter(); 
+  }, [ages]);
+
 
   const handleAddFriend = (user2_id) => {
     const token = localStorage.getItem('token');
@@ -103,6 +131,34 @@ const Matching = () => {
       });
   };
 
+  const handleTimezoneFilter = (e) => {
+    if (timezones.length === 0) {
+      setFilteredMatches(matches);
+    } else {
+      const selectedTimezones = timezones.map((tz) => tz.value);
+      const filtered = matches.filter((match) => selectedTimezones.includes(match.timezone));
+      setFilteredMatches(filtered);
+    }
+  };
+
+  const handleAgesFilter = (e) => {
+    if (ages.length === 0) {
+      setFilteredMatches(matches);
+    } else {
+      const filtered = matches.filter((match) => {
+        return ages.some((ageRange) => {
+          const [minAge, maxAge] = ageRange.value.split('-').map(Number);
+          if (maxAge) {
+            return match.age >= minAge && match.age <= maxAge;
+          }
+          return match.age >= minAge;
+        });
+      });
+  
+      setFilteredMatches(filtered);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h2 className="text-3xl font-bold mb-6">Matching</h2>
@@ -134,14 +190,42 @@ const Matching = () => {
           ))}
         </select>
       </div>
+      <div className = "mb-10 flex space-x-4">
+        <div className="w-1/2">
+          <label className="block mb-2">Timezones:</label>
+          <Select
+            isMulti 
+            options={timezoneOptions} 
+            value={timezones}  
+            onChange={(selectedOptions) => setTimezones(selectedOptions)}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            placeholder="Select"
+          />
+        </div>
+
+        <div className="w-1/2">
+          <label className="block mb-2">Age:</label>
+          <Select
+            isMulti 
+            options={ageOptions} 
+            value={ages}  
+            onChange={(selectedOptions) => setAges(selectedOptions)}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            placeholder="Select"
+          />
+        </div>
+
+      </div>
 
       <div>
         <h3 className="text-2xl font-bold mb-4">Matches</h3>
         <ul>
-          {matches.length > 0 ? (
-            matches.map((match) => (
+          {filteredMatches.length > 0 ? (
+            filteredMatches.map((match) => (
               <li key={match.id} className="mb-4 p-4 bg-white rounded shadow">
-                <p>{match.name} - {match.proficient_languages} - {match.learning_languages}</p>
+                <p>{match.name} - {match.proficient_languages} - {match.learning_languages} - {match.timezone}</p>
                 <div className="mt-2">
                   <button
                     onClick={() => navigate(`/view-profile/${match.id}`)}

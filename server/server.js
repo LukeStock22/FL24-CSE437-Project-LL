@@ -928,8 +928,40 @@ app.post('/api/password-reset/:token', async (req, res) => {
  });
 });
 
+//Block user 
+// app.post('/api/block/:userId', (req, res) => {
+//   const token = req.headers['authorization']?.split(' ')[1];
+//   if (!token) {
+//     return res.status(401).json({ success: false, message: 'No token provided' });
+//   }
 
+//   jwt.verify(token, SECRET_KEY, (err, decoded) => {
+//       if (err) {
+//           return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
+//       }
 
+//       const blockerId = decoded.id; //ID of user doing the blocking
+//       const blockedUserId = req.body.userId; //ID of user being blocked
+
+//       if (!blockedUserId) {
+//         return res.status(400).json({ success: false, message: 'User ID to block is required' });
+//       }
+
+//       const query = `
+//         INSERT INTO blocks (blocker_id, blocked_user_id)
+//         VALUES (?, ?);
+//       `;
+
+//       connection.query(query, [blockerId, blockedUserId], (err, result) => {
+//         if (err) {
+//           console.error('Error blocking user:', err);
+//           return res.status(500).json({ success: false, message: 'Error blocking user' });
+//         }
+  
+//         res.json({ success: true, message: 'User blocked successfully' });
+//       });
+//   });
+// });
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
