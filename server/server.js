@@ -1019,7 +1019,7 @@ app.get('/api/users', (req, res) => {
 
 //Check who user is blocked by
 app.get('/api/blockedBy', (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // Get the token from headers
+  const token = req.headers['authorization']?.split(' ')[1]; 
     
     if (!token) {
         return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -1027,8 +1027,8 @@ app.get('/api/blockedBy', (req, res) => {
 
     let currentUserId;
     try {
-        const decoded = jwt.verify(token, SECRET_KEY); // Replace 'your_secret_key' with your actual secret
-        currentUserId = decoded.id; // Ensure your token includes the user ID
+        const decoded = jwt.verify(token, SECRET_KEY);
+        currentUserId = decoded.id; 
     } catch (err) {
         console.error('Token verification error:', err);
         return res.status(401).json({ success: false, message: 'Invalid token' });
@@ -1042,14 +1042,14 @@ app.get('/api/blockedBy', (req, res) => {
         }
         res.status(200).json({
             success: true,
-            blockedBy: results.map(row => row.blocker_id), // Directly return the mapped array
+            blockedBy: results.map(row => row.blocker_id), 
         });
     });
 });
 
 // Check who user has blocked
 app.get('/api/blocked', (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // Get the token from headers
+  const token = req.headers['authorization']?.split(' ')[1]; 
     
     if (!token) {
         return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -1057,8 +1057,8 @@ app.get('/api/blocked', (req, res) => {
 
     let currentUserId;
     try {
-        const decoded = jwt.verify(token, SECRET_KEY); // Replace 'your_secret_key' with your actual secret
-        currentUserId = decoded.id; // Ensure your token includes the user ID
+        const decoded = jwt.verify(token, SECRET_KEY); 
+        currentUserId = decoded.id; 
     } catch (err) {
         console.error('Token verification error:', err);
         return res.status(401).json({ success: false, message: 'Invalid token' });
@@ -1072,33 +1072,45 @@ app.get('/api/blocked', (req, res) => {
         }
         res.status(200).json({
             success: true,
-            blocked: results.map(row => row.blocked_id), // Directly return the mapped array
+            blocked: results.map(row => row.blocked_id), 
         });
     });
 });
 
-// //Unblock a user
-// app.delete('/api/unblock', (req, res) => {
-//   const { blockedId } = req.body; // Assuming the ID of the user to unblock is sent in the request body
-//   const currentUserId = req.user.id; // Assuming user ID is stored in the session or token
+// Unblock a user
+app.delete('/api/unblock', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1]; 
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
 
-//   const query = 'DELETE FROM blocks WHERE blocker_id = ? AND blocked_id = ?';
-//   connection.query(query, [currentUserId, blockedId], (err, results) => {
-//       if (err) {
-//           console.error('Error executing query:', err);
-//           return res.status(500).send('Server Error');
-//       }
-//       if (results.affectedRows === 0) {
-//           return res.status(404).json({ success: false, message: 'Block not found.' });
-//       }
+    let currentUserId;
+    let blockedId;
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY); 
+        currentUserId = decoded.id; //ID of user doing the unblocking
+        blockedId = req.body.userId; //ID of user being unblocked
+    } catch (err) {
+        console.error('Token verification error:', err);
+        return res.status(401).json({ success: false, message: 'Invalid token' });
+    }
 
-//       res.json({
-//           success: true,
-//           message: 'User unblocked successfully.',
-//       });
-//   });
-// });
-
+    const query = 'DELETE FROM blocks WHERE blocker_id = ? AND blocked_id = ?';
+    connection.query(query, [currentUserId, blockedId], (err, results) => {
+        if (err) {
+            console.error('Error executing query:', err);
+            return res.status(500).json({ success: false, message: 'Server Error' });
+        }
+        if (results.affectedRows === 0) {
+          return res.status(404).json({ success: false, message: 'Block not found.' });
+        }
+        res.status(200).json({
+            success: true,
+            message: 'User unblocked.',
+        });
+    });
+});
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {

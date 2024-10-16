@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 const ViewProfile = () => {
   const { id } = useParams(); // Get the user ID from the URL
   const [profile, setProfile] = useState(null);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -33,6 +34,40 @@ const ViewProfile = () => {
         console.error('Error fetching profile:', error);
       });
   }, [id]);
+
+  // getting list of users who current user has blocked
+  useEffect(() => {
+    const fetchBlocked = () => {
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:4000/api/blocked', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then((response) => {
+          if (response.status === 401) {
+            alert('Unauthorized. Please log in.');
+            return;
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            console.log("blocked: ", data.blocked)
+            setIsBlocked(String(data.blocked).includes(String(id)))
+          } else {
+            console.error('Error fetching blocked users:', data.message);
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching blocked users:', error);
+        });
+    };
+    fetchBlocked();
+  }, [id]);
+
 
   if (!profile) {
     return <p>Loading...</p>;
@@ -66,12 +101,7 @@ const displayValue = (value) => {
       })
       .then((data) => {
         if (data.success) {
-          // Immediately update the match's friend status to 'pending'
-          // setMatches((prevMatches) => 
-          //   prevMatches.map((match) => 
-          //     match.id === user2_id ? { ...match, friend_status: 'pending' } : match
-          //   )
-          // );
+          //change button to pending, not add friend
           console.log("added friend")
         } else {
           alert(data.message);
@@ -82,30 +112,56 @@ const displayValue = (value) => {
       });
   };
 
-  // const handleBlockUser = (user2_id) => {
-  //   const token = localStorage.getItem('token');
+  //to block a user
+  const handleBlockUser = (userId) => {
+    const token = localStorage.getItem('token');
+    fetch(`http://localhost:4000/api/block`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({userId}) //sending userId to be blocked
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to block user');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('User blocked successfully:', data);
+        setIsBlocked(true); 
+      })
+      .catch((error) => {
+        console.error('Error blocking user:', error);
+      });
+  };
 
-  //   fetch(`http://localhost:4000/api/block`, {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       'Authorization': `Bearer ${token}`,
-  //     },
-  //     body: JSON.stringify({user2_id}) //sending userId to be blocked
-  //   })
-  //     .then((response) => {
-  //       if (!response.ok) {
-  //         throw new Error('Failed to block user');
-  //       }
-  //       return response.json();
-  //     })
-  //     .then((data) => {
-  //       console.log('User blocked successfully:', data); 
-  //     })
-  //     .catch((error) => {
-  //       console.error('Error blocking user:', error);
-  //     });
-  // };
+  const handleUnblockUser = (userId) => {
+    const token = localStorage.getItem('token');
+    fetch(`http://localhost:4000/api/unblock`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({userId}) //sending userId to be unblocked
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to unblock user');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('User unblocked successfully:', data);
+        setIsBlocked(false); 
+      })
+      .catch((error) => {
+        console.error('Error unblocking user:', error);
+      });
+  };
 
 
   // Render the component
@@ -124,12 +180,23 @@ const displayValue = (value) => {
           >
             Add Friend
           </button>
-          {/* <button
-            onClick={() => handleBlockUser(id)}
-            className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
-          >
-            Block
-          </button> */}
+
+          {isBlocked ? (
+            <button
+              onClick={() => handleUnblockUser(id)}
+              className="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600"
+            >
+              Unblock
+            </button>
+          ) : (
+            <button
+              onClick={() => handleBlockUser(id)}
+              className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+            >
+              Block
+            </button>
+          )}
+
         <Link to="/matching">
           <button className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
             Back to Matching
