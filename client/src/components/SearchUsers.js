@@ -46,7 +46,6 @@ const SearchUsers = ({users}) => {
         })
         .then((data) => {
           if (data.success) {
-            console.log("blocked by: ", data.blockedBy)
             setBlockedByUsers(data.blockedBy); //list of blocked by user IDs
           } else {
             console.error('Error fetching blocked users:', data.message);
@@ -74,7 +73,6 @@ const SearchUsers = ({users}) => {
         .then((data) => {
             if (data.success) {
             setCurrentUser(data);
-            console.log("curr user", data)
             } else {
             alert('Failed to fetch current user');
             }

@@ -16,6 +16,7 @@ const Home = () => {
  const [showProfileModal, setShowProfileModal] = useState(false);
  const [darkMode, setDarkMode] = useState(true); // Dark mode state
  const [users, setUsers] = useState([]);
+ const [isBlocked, setIsBlocked] = useState(false);
 
  // Fetch profile info
  useEffect(() => {
@@ -141,6 +142,32 @@ const Home = () => {
        }
      })
      .catch((error) => console.error(`Error ${action}ing friend request:`, error));
+
+      fetch('http://localhost:4000/api/blocked', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then((response) => {
+          if (response.status === 401) {
+            alert('Unauthorized. Please log in.');
+            return;
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            console.log("blocked", data.blocked)
+            setIsBlocked(String(data.blocked).includes(String(viewProfile.id)));
+          } else {
+            console.error('Error fetching blocked users:', data.message);
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching blocked users:', error);
+        });
  };
 
 
@@ -215,12 +242,38 @@ const handleBlockUser = (userId) => {
     })
     .then((data) => {
       console.log('User blocked successfully:', data);
-      setShowProfileModal(false); 
+      setIsBlocked(true);
     })
     .catch((error) => {
       console.error('Error blocking user:', error);
     });
 };
+
+  //to unblock a user
+  const handleUnblockUser = (userId) => {
+    const token = localStorage.getItem('token');
+    fetch(`http://localhost:4000/api/unblock`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({userId}) //sending userId to be unblocked
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to unblock user');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('User unblocked successfully:', data);
+        setIsBlocked(false); 
+      })
+      .catch((error) => {
+        console.error('Error unblocking user:', error);
+      });
+  };
 
  if (loading) {
    return <div className="text-center text-2xl">Loading...</div>;
@@ -362,13 +415,22 @@ const handleBlockUser = (userId) => {
            <p className="text-sm mb-2">Proficient Languages: {viewProfile.proficient_languages}</p>
            <p className="text-sm mb-2">Learning Languages: {viewProfile.learning_languages}</p>
            <p className="text-sm">Age: {viewProfile.age}</p>
-           <div className="mt-4 space-x-2">
+           <div className="mt-4 space-x-2"> 
+           {isBlocked ? (
+            <button
+              onClick={() => handleUnblockUser(viewProfile.id)}
+              className="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600"
+            >
+              Unblock
+            </button>
+          ) : (
             <button
               onClick={() => handleBlockUser(viewProfile.id)}
               className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
             >
               Block
             </button>
+          )}
           </div>
          </div>
        </div>
