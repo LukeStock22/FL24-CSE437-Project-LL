@@ -5,6 +5,8 @@ const ViewProfile = () => {
   const { id } = useParams(); // Get the user ID from the URL
   const [profile, setProfile] = useState(null);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [isFriend, setIsFriend] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -69,6 +71,47 @@ const ViewProfile = () => {
   }, [id]);
 
 
+  useEffect(() => {
+    const fetchFriendStatus = (user2_id) => {
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:4000/api/friendStatus', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        if (response.status === 401) {
+          alert('Unauthorized. Please log in.');
+          return;
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.success) {
+          console.log("friend status: ", data.status[0])
+          if (data.status.some(item => item.status === 'pending')) {
+            setIsPending(true);
+            setIsFriend(false);
+          } else if (data.status.some(item => item.status === 'accepted')) {
+            setIsPending(false);
+            setIsFriend(true);
+          } else { 
+            setIsPending(false);
+            setIsFriend(false);
+          }
+        } else {
+          console.error('Error fetching friend status:', data.message);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching friend status:', error);
+      });
+    };
+    fetchFriendStatus(id);
+  }, [id]);
+
   if (!profile) {
     return <p>Loading...</p>;
   }
@@ -101,7 +144,7 @@ const displayValue = (value) => {
       })
       .then((data) => {
         if (data.success) {
-          //change button to pending, not add friend
+          setIsPending(true);
           console.log("added friend")
         } else {
           alert(data.message);
@@ -163,6 +206,27 @@ const displayValue = (value) => {
       });
   };
 
+  const handleRemoveFriend = (friendId) => {
+    const token = localStorage.getItem('token');
+    fetch(`http://localhost:4000/api/removeFriend/${friendId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data) {
+          setIsFriend(false);
+          console.log("Removed friend")
+        } else {
+          alert('Failed to remove friend');
+        }
+      })
+      .catch((error) => console.error('Error removing friend:', error));
+  };
+
 
   // Render the component
   return (
@@ -174,12 +238,28 @@ const displayValue = (value) => {
       <p><strong>Interests:</strong> {displayValue(profile.interests_hobbies)}</p>
   
       <div className="flex space-x-4 mt-4"> {/* Add flex and space-y for vertical spacing */}
-        <button
-            onClick={() => handleAddFriend(id)}
-            className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
-          >
-            Add Friend
-          </button>
+          {isFriend ? (
+            <button
+              onClick={() => handleRemoveFriend(id)}
+              className="bg-red-500 text-white py-1 px-4 rounded hover:bg-red-600"
+            >
+              Remove Friend
+            </button>
+          ) : isPending ? (
+            <button
+              className="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed"
+              disabled
+            >
+              Pending
+            </button>
+          ) : (
+            <button
+              onClick={() => handleAddFriend(id)}
+              className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
+            >
+              Add Friend
+            </button>
+          )}
 
           {isBlocked ? (
             <button

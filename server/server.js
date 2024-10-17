@@ -343,13 +343,6 @@ app.get('/api/matches', authenticateToken, (req, res) => {
  );
 });
 
-
-
-
-
-
-
-
 // FRIEND REQUEST
 // Friend request action route (accept or reject)
 app.post('/api/friend-request/:id/:action', (req, res) => {
@@ -1108,6 +1101,38 @@ app.delete('/api/unblock', (req, res) => {
         res.status(200).json({
             success: true,
             message: 'User unblocked.',
+        });
+    });
+});
+
+app.get('/api/friendStatus', (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1]; 
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    let user1_id; //user1_id is id of user who has sent friend request (only pending for this user)
+    let user2_id = 3; //user2_id is id of user who has received friend request
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY);
+        user1_id = decoded.id; 
+    } catch (err) {
+        console.error('Token verification error:', err);
+        return res.status(401).json({ success: false, message: 'Invalid token' });
+    }
+    const query = 'SELECT status FROM friendships WHERE user1_id = ? AND user2_id = ?';
+    console.log("user1", user1_id);
+    console.log("user2", user2_id);
+    
+    connection.query(query, [user1_id, user2_id], (err, result) => {
+        if (err) {
+            console.error('Error executing query:', err);
+            return res.status(500).json({ success: false, message: 'Server Error' });
+        }
+        res.status(200).json({
+            success: true,
+            status: result,
         });
     });
 });
