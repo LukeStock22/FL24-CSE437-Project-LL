@@ -72,9 +72,9 @@ const ViewProfile = () => {
 
 
   useEffect(() => {
-    const fetchFriendStatus = (user2_id) => {
+    const fetchFriendStatus = () => {
       const token = localStorage.getItem('token');
-      fetch('http://localhost:4000/api/friendStatus', {
+      fetch(`http://localhost:4000/api/friendStatus?user2_id=${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ const ViewProfile = () => {
           } else if (data.status.some(item => item.status === 'accepted')) {
             setIsPending(false);
             setIsFriend(true);
-          } else { 
+          } else { //not pending or accepted, so add friend is an option
             setIsPending(false);
             setIsFriend(false);
           }
@@ -109,7 +109,7 @@ const ViewProfile = () => {
         console.error('Error fetching friend status:', error);
       });
     };
-    fetchFriendStatus(id);
+    fetchFriendStatus();
   }, [id]);
 
   if (!profile) {
@@ -227,6 +227,27 @@ const displayValue = (value) => {
       .catch((error) => console.error('Error removing friend:', error));
   };
 
+  const handleRemoveRequest = (friendRequestId) => {
+    const token = localStorage.getItem('token');
+    fetch(`http://localhost:4000/api/removeFriend/${friendRequestId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data) {
+          setIsPending(false);
+          console.log("Removed friend request")
+        } else {
+          alert('Failed to remove friend request');
+        }
+      })
+      .catch((error) => console.error('Error removing friend:', error));
+  };
+
 
   // Render the component
   return (
@@ -247,8 +268,8 @@ const displayValue = (value) => {
             </button>
           ) : isPending ? (
             <button
-              className="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed"
-              disabled
+              onClick={() => handleRemoveRequest(id)} //remove friend is same as remove request because it gets rid of the friendship in the database
+              className="bg-gray-500 text-white py-1 px-4 rounded hover:bg-gray-600"
             >
               Pending
             </button>

@@ -381,11 +381,25 @@ app.post('/api/friend-request/:id/:action', (req, res) => {
        return res.status(500).json({ success: false, message: 'Error processing friend request' });
      }
 
+     // If the action is accept, add another acceptance relationship between user2 and user1 so friendship is mutual
+     if (action === 'accept') {
+        const insertQuery = `INSERT INTO friendships (user1_id, user2_id, status, created_at) VALUES (?, ?, 'accepted', NOW())`;
+        
+        connection.query(insertQuery, [user2_id, requestId], (err, result) => {
+            if (err) {
+                console.error('Error inserting reverse friendship:', err);
+                return res.status(500).json({ success: false, message: 'Server Error' });
+            }
+            
+            return res.status(200).json({ success: true, message: 'Friendship accepted and mutual relationship created' });
+        });
+    } else {
+        return res.status(200).json({ success: true, message: `Friendship ${status}` });
+    }
 
      if (results.affectedRows === 0) {
        return res.status(404).json({ success: false, message: 'Friend request not found' });
      }
-
 
      res.json({ success: true, message: `Friend request ${action}ed successfully` });
    });
@@ -1113,7 +1127,12 @@ app.get('/api/friendStatus', (req, res) => {
     }
 
     let user1_id; //user1_id is id of user who has sent friend request (only pending for this user)
-    let user2_id = 3; //user2_id is id of user who has received friend request
+    const user2_id = req.query.user2_id //user2_id is id of user who has received friend request
+
+    if (!user2_id) {
+      return res.status(400).json({ success: false, message: 'user2_id is required' });
+    }
+
     try {
         const decoded = jwt.verify(token, SECRET_KEY);
         user1_id = decoded.id; 
