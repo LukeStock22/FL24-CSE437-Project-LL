@@ -23,6 +23,12 @@ const languageOptions = [
   { value: 'Hebrew', label: 'Hebrew' },
 ];
 
+const timezoneOptions = [
+  { value: 'EST', label: 'EST (Eastern Standard Time)' },
+  { value: 'CST', label: 'CST (Central Standard Time)' },
+  { value: 'PST', label: 'PST (Pacific Standard Time)' }
+];
+
 const EditProfile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState({
@@ -79,6 +85,13 @@ const EditProfile = () => {
     setProfile({
       ...profile,
       [actionMeta.name]: selectedOptions || []
+    });
+  };
+
+  const handleTimezoneChange = (selectedOption, { name }) => {
+    setProfile({
+      ...profile,
+      [name]: selectedOption ? selectedOption.value : ''  // Access the value from the selected option
     });
   };
 
@@ -152,12 +165,14 @@ const EditProfile = () => {
 
         <div>
           <label className="block mb-2">Timezone:</label>
-          <input
-            type="text"
+          <Select
+            options={timezoneOptions} 
+            value={timezoneOptions.find(option => option.value === profile.timezone)}
             name="timezone"
-            value={profile.timezone}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            onChange={handleTimezoneChange}
+            className="basic-select"
+            classNamePrefix="select"
+            placeholder=""
           />
         </div>
         <div>
