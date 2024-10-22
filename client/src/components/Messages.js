@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { io } from 'socket.io-client';  // Import socket.io-client
+import Navbar from './Navbar';
+import { DarkModeContext } from './DarkModeContext'; 
 
 const socket = io('http://localhost:4000'); // Connect to the backend
 
@@ -10,7 +12,7 @@ const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [friends, setFriends] = useState([]);
-  const [darkMode, setDarkMode] = useState(true);
+  const { darkMode, setDarkMode } = useContext(DarkModeContext); 
 
   const hasJoinedChat = useRef(false); // To prevent multiple join events
 
@@ -148,59 +150,49 @@ const Messages = () => {
   };
 
   return (
-    <div className={`min-h-screen p-8 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
-      <h2 className="text-3xl font-bold mb-6">Messages</h2>
+    <div>
+      <Navbar/>
+      <div className={`min-h-screen p-8 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
+        <h2 className="text-3xl font-bold mb-6">Messages</h2>
 
-      <button
-        onClick={() => setDarkMode(!darkMode)}
-        className="mb-4 bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-600"
-      >
-        Toggle Dark Mode
-      </button>
+        {/* Remove Start a Chat section */}
+        
+        <div className="mb-8">
+          <h3 className="text-2xl font-bold mb-4">Your Chats</h3>
+          {friends.map(friend => (
+            <div key={friend.id} className="mb-2">
+              <button
+                onClick={() => handleChatClick(friend)} // Handles both new and existing chats
+                className={`py-1 px-4 rounded ${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-200 text-black hover:bg-blue-300'}`}
+              >
+                Chat with {friend.name}
+              </button>
+            </div>
+          ))}
+        </div>
 
-      {/* Remove Start a Chat section */}
-      
-      <div className="mb-8">
-        <h3 className="text-2xl font-bold mb-4">Your Chats</h3>
-        {friends.map(friend => (
-          <div key={friend.id} className="mb-2">
+        {selectedChat && (
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold mb-4">Chat</h3>
+            <div className={`p-4 rounded shadow mb-4 ${darkMode ? 'bg-gray-800' : 'bg-white'} max-h-80 overflow-y-auto`}>
+              {messages.map((msg, index) => renderMessage(msg, index))}
+            </div>
+
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              className={`w-full p-2 rounded mb-2 ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-300 text-black'}`}
+            />
             <button
-              onClick={() => handleChatClick(friend)} // Handles both new and existing chats
-              className={`py-1 px-4 rounded ${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-200 text-black hover:bg-blue-300'}`}
+              onClick={sendMessage}
+              className={`py-2 px-4 rounded ${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-200 text-black hover:bg-blue-300'}`}
             >
-              Chat with {friend.name}
+              Send
             </button>
           </div>
-        ))}
+        )}
       </div>
-
-      {selectedChat && (
-        <div className="mb-8">
-          <h3 className="text-2xl font-bold mb-4">Chat</h3>
-          <div className={`p-4 rounded shadow mb-4 ${darkMode ? 'bg-gray-800' : 'bg-white'} max-h-80 overflow-y-auto`}>
-            {messages.map((msg, index) => renderMessage(msg, index))}
-          </div>
-
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className={`w-full p-2 rounded mb-2 ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-300 text-black'}`}
-          />
-          <button
-            onClick={sendMessage}
-            className={`py-2 px-4 rounded ${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-200 text-black hover:bg-blue-300'}`}
-          >
-            Send
-          </button>
-        </div>
-      )}
-
-      <Link to="/home">
-        <button className={`mt-4 py-2 px-4 rounded ${darkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-500 text-white hover:bg-gray-400'}`}>
-          Home
-        </button>
-      </Link>
     </div>
   );
 };

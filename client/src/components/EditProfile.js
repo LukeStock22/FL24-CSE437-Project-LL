@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
+import Navbar from './Navbar';
+import { DarkModeContext } from './DarkModeContext'; 
 
 // Language options for dropdowns
 const languageOptions = [
@@ -41,6 +43,7 @@ const EditProfile = () => {
   });
 
   const [successMessage, setSuccessMessage] = useState(''); // State for success message
+  const { darkMode, setDarkMode } = useContext(DarkModeContext); 
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -123,95 +126,92 @@ const EditProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h2 className="text-3xl font-bold mb-6">Edit Profile</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block mb-2">Name:</label>
-          <input
-            type="text"
-            name="name"
-            value={profile.name}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
+    <div>
+      <Navbar/>
+      <div className="min-h-screen bg-gray-100 p-8">
+        <h2 className="text-3xl font-bold mb-6">Edit Profile</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block mb-2">Name:</label>
+            <input
+              type="text"
+              name="name"
+              value={profile.name}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
 
-        <div>
-          <label className="block mb-2">Proficient Languages:</label>
-          <Select
-            isMulti
-            name="proficientLanguages"
-            options={languageOptions}
-            value={profile.proficientLanguages}
-            onChange={handleLanguageChange}
-            className="basic-multi-select"
-            classNamePrefix="select"
-          />
-        </div>
+          <div>
+            <label className="block mb-2">Proficient Languages:</label>
+            <Select
+              isMulti
+              name="proficientLanguages"
+              options={languageOptions}
+              value={profile.proficientLanguages}
+              onChange={handleLanguageChange}
+              className="basic-multi-select"
+              classNamePrefix="select"
+            />
+          </div>
 
-        <div>
-          <label className="block mb-2">Learning Languages:</label>
-          <Select
-            isMulti
-            name="learningLanguages"
-            options={languageOptions}
-            value={profile.learningLanguages}
-            onChange={handleLanguageChange}
-            className="basic-multi-select"
-            classNamePrefix="select"
-          />
-        </div>
+          <div>
+            <label className="block mb-2">Learning Languages:</label>
+            <Select
+              isMulti
+              name="learningLanguages"
+              options={languageOptions}
+              value={profile.learningLanguages}
+              onChange={handleLanguageChange}
+              className="basic-multi-select"
+              classNamePrefix="select"
+            />
+          </div>
 
-        <div>
-          <label className="block mb-2">Timezone:</label>
-          <Select
-            options={timezoneOptions} 
-            value={timezoneOptions.find(option => option.value === profile.timezone)}
-            name="timezone"
-            onChange={handleTimezoneChange}
-            className="basic-select"
-            classNamePrefix="select"
-            placeholder=""
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Interests/Hobbies:</label>
-          <input
-            type="text"
-            name="interests"
-            value={profile.interests}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-        <div>
-          <label className="block mb-2">Age:</label>
-          <input
-            type="number"
-            name="age"
-            value={profile.age}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-        <div className="flex items-center">
-          <button
-            type="submit"
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-          >
-            Update Profile
-          </button>
-          {/* Show success message */}
-          {successMessage && <span className="ml-4 text-green-500">{successMessage}</span>}
-        </div>
-      </form>
-
-      <Link to="/home">
-        <button className="mt-4 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
-          Home
-        </button>
-      </Link>
+          <div>
+            <label className="block mb-2">Timezone:</label>
+            <Select
+              options={timezoneOptions} 
+              value={timezoneOptions.find(option => option.value === profile.timezone)}
+              name="timezone"
+              onChange={handleTimezoneChange}
+              className="basic-select"
+              classNamePrefix="select"
+              placeholder=""
+            />
+          </div>
+          <div>
+            <label className="block mb-2">Interests/Hobbies:</label>
+            <input
+              type="text"
+              name="interests"
+              value={profile.interests}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
+          <div>
+            <label className="block mb-2">Age:</label>
+            <input
+              type="number"
+              name="age"
+              value={profile.age}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
+          <div className="flex items-center">
+            <button
+              type="submit"
+              className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+            >
+              Update Profile
+            </button>
+            {/* Show success message */}
+            {successMessage && <span className="ml-4 text-green-500">{successMessage}</span>}
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SearchUsers from './SearchUsers';
+import Navbar from './Navbar';
+import { DarkModeContext } from './DarkModeContext'; 
 
 
 const Home = () => {
@@ -14,7 +16,7 @@ const Home = () => {
  const [chats, setChats] = useState([]); // To store chat data for recent messages
  const [loading, setLoading] = useState(true);
  const [showProfileModal, setShowProfileModal] = useState(false);
- const [darkMode, setDarkMode] = useState(true); // Dark mode state
+ const { darkMode, setDarkMode } = useContext(DarkModeContext); 
  const [users, setUsers] = useState([]);
  const [isBlocked, setIsBlocked] = useState(false);
 
@@ -281,31 +283,12 @@ const handleBlockUser = (userId) => {
 
  return (
    <div className={`flex flex-col min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
-     {/* Top Navbar */}
-     <div className={`flex justify-between p-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md`}>
-       <h1 className="text-3xl font-bold">Welcome, {username}!</h1>
-       <div className="space-x-4">
-         <button
-           onClick={() => setDarkMode(!darkMode)}
-           className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
-         >
-           Toggle Dark Mode
-           {/*{darkMode ? '☀️' : '🌙'} {/* Sun for dark mode, moon for light mode } */}
-         </button>
-         <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
-           Logout
-         </button>
-         <Link to="/edit-profile">
-           <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Edit Profile</button>
-         </Link>
-       </div>
-     </div>
-
+     <Navbar/>
 
      {/* Main Content */}
      <div className="flex flex-grow mt-4 p-4">
        {/* Messages Section */}
-       <div className={`w-1/4 p-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
+       <div className={`w-1/4 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
          <h2 className="text-xl font-bold mb-4">Messages</h2>
          <ul>
            {friends.length > 0 ? (
@@ -327,7 +310,7 @@ const handleBlockUser = (userId) => {
 
 
        {/* Notifications Section */}
-       <div className={`w-1/2 p-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
+       <div className={`w-1/2 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
          <h2 className="text-xl font-bold mb-4">Notifications</h2>
          <div className="space-y-2">
            {notifications.length > 0 ? (
@@ -362,10 +345,10 @@ const handleBlockUser = (userId) => {
 
 
        {/* Find Matches and Manage Friends Section */}
-       <div className={`w-1/4 p-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md`}>
+       <div className={`w-1/4 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md`}>
         <SearchUsers users = {users} />
 
-         <h2 className="text-xl font-bold mb-4">Find Matches</h2>
+         <h2 className="text-xl font-bold mt-4 mb-4">Find Matches</h2>
          <Link to="/matching">
            <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Add Friends</button>
          </Link>
@@ -374,14 +357,13 @@ const handleBlockUser = (userId) => {
               {friends.length > 0 ? (
               friends.map((friend) => (
                 <li key={friend.id} className="p-2 border-b flex justify-between items-center">
-                 <span className="flex-grow text-center">{friend.name}</span>
+                <button
+                  onClick={() => handleViewProfile(friend.id)}
+                  className="flex-grow text-center text-blue-500 hover:underline"
+                >
+                  {friend.name}
+                </button>
                  <div className="space-x-2">
-                  <button
-                    onClick={() => handleViewProfile(friend.id)}
-                    className="bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600"
-                  >
-                    View Profile
-                  </button>
                   <button
                     onClick={() => handleRemoveFriend(friend.id)}
                     className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
@@ -411,11 +393,17 @@ const handleBlockUser = (userId) => {
           >
               &times;
           </button>
-           <h3 className="text-xl font-bold mb-2">{viewProfile.name}&apos;s Profile</h3>
+           <h3 className="text-xl font-bold mb-2">{viewProfile.name}</h3>
            <p className="text-sm mb-2">Proficient Languages: {viewProfile.proficient_languages}</p>
            <p className="text-sm mb-2">Learning Languages: {viewProfile.learning_languages}</p>
            <p className="text-sm">Age: {viewProfile.age}</p>
            <div className="mt-4 space-x-2"> 
+            <button
+              onClick={() => navigate(`/view-profile/${viewProfile.id}`)}
+              className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
+            >
+              Full Profile
+            </button>
            {isBlocked ? (
             <button
               onClick={() => handleUnblockUser(viewProfile.id)}
