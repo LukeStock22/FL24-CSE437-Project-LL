@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
+import Navbar from './Navbar';
+import { DarkModeContext } from './DarkModeContext'; 
 
 const Matching = () => {
   const [proficientLanguage, setProficientLanguage] = useState('');
@@ -11,6 +13,7 @@ const Matching = () => {
   const [filteredMatches, setFilteredMatches] = useState([]);
   const [blockedByUsers, setBlockedByUsers] = useState([]);
   const [blockedUsers, setBlockedUsers] = useState([]);
+  const { darkMode, setDarkMode } = useContext(DarkModeContext); 
 
   const languageOptions = ['English', 'Spanish', 'French', 'Polish', 'Italian', 'Mandarin', 'German', 'Hindi', 'Russian'];
   const timezoneOptions = [
@@ -241,108 +244,105 @@ const Matching = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h2 className="text-3xl font-bold mb-6">Matching</h2>
-      
-      <div className="mb-4">
-        <label className="block mb-2">Proficient Language:</label>
-        <select
-          value={proficientLanguage}
-          onChange={(e) => setProficientLanguage(e.target.value)}
-          className="p-2 border border-gray-300 rounded w-full"
-        >
-          <option value="">Select</option>
-          {languageOptions.map((lang) => (
-            <option key={lang} value={lang}>{lang}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="mb-6">
-        <label className="block mb-2">Learning Language:</label>
-        <select
-          value={learningLanguage}
-          onChange={(e) => setLearningLanguage(e.target.value)}
-          className="p-2 border border-gray-300 rounded w-full"
-        >
-          <option value="">Select</option>
-          {languageOptions.map((lang) => (
-            <option key={lang} value={lang}>{lang}</option>
-          ))}
-        </select>
-      </div>
-      <div className = "mb-10 flex space-x-4">
-        <div className="w-1/2">
-          <label className="block mb-2">Timezones:</label>
-          <Select
-            isMulti 
-            options={timezoneOptions} 
-            value={timezones}  
-            onChange={(selectedOptions) => setTimezones(selectedOptions)}
-            className="basic-multi-select"
-            classNamePrefix="select"
-            placeholder="Select"
-          />
+    <div>
+      <Navbar/>
+      <div className="min-h-screen bg-gray-100 p-8">
+        <h2 className="text-3xl font-bold mb-6">Matching</h2>
+        
+        <div className="mb-4">
+          <label className="block mb-2">Proficient Language:</label>
+          <select
+            value={proficientLanguage}
+            onChange={(e) => setProficientLanguage(e.target.value)}
+            className="p-2 border border-gray-300 rounded w-full"
+          >
+            <option value="">Select</option>
+            {languageOptions.map((lang) => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
+          </select>
         </div>
 
-        <div className="w-1/2">
-          <label className="block mb-2">Age:</label>
-          <Select
-            isMulti 
-            options={ageOptions} 
-            value={ages}  
-            onChange={(selectedOptions) => setAges(selectedOptions)}
-            className="basic-multi-select"
-            classNamePrefix="select"
-            placeholder="Select"
-          />
+        <div className="mb-6">
+          <label className="block mb-2">Learning Language:</label>
+          <select
+            value={learningLanguage}
+            onChange={(e) => setLearningLanguage(e.target.value)}
+            className="p-2 border border-gray-300 rounded w-full"
+          >
+            <option value="">Select</option>
+            {languageOptions.map((lang) => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
+          </select>
+        </div>
+        <div className = "mb-10 flex space-x-4">
+          <div className="w-1/2">
+            <label className="block mb-2">Timezones:</label>
+            <Select
+              isMulti 
+              options={timezoneOptions} 
+              value={timezones}  
+              onChange={(selectedOptions) => setTimezones(selectedOptions)}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              placeholder="Select"
+            />
+          </div>
+
+          <div className="w-1/2">
+            <label className="block mb-2">Age:</label>
+            <Select
+              isMulti 
+              options={ageOptions} 
+              value={ages}  
+              onChange={(selectedOptions) => setAges(selectedOptions)}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              placeholder="Select"
+            />
+          </div>
+
         </div>
 
-      </div>
-
-      <div>
-        <h3 className="text-2xl font-bold mb-4">Matches</h3>
-        <ul>
-          {filteredMatches.length > 0 ? (
-            filteredMatches.map((match) => (
-              <li key={match.id} className="mb-4 p-4 bg-white rounded shadow">
-                <p>{match.name} - {match.proficient_languages} - {match.learning_languages} - {match.timezone}</p>
-                <div className="mt-2">
-                  <button
-                    onClick={() => navigate(`/view-profile/${match.id}`)}
-                    className="bg-blue-500 text-white py-1 px-4 rounded mr-2 hover:bg-blue-600"
-                  >
-                    View Profile
-                  </button>
-                  {match.friend_status === 'pending' ? (
+        <div>
+          <h3 className="text-2xl font-bold mb-4">Matches</h3>
+          <ul>
+            {filteredMatches.length > 0 ? (
+              filteredMatches.map((match) => (
+                <li key={match.id} className="mb-4 p-4 bg-white rounded shadow">
+                  <p>{match.name} - {match.proficient_languages} - {match.learning_languages} - {match.timezone}</p>
+                  <div className="mt-2">
                     <button
-                      className="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed"
-                      disabled
+                      onClick={() => navigate(`/view-profile/${match.id}`)}
+                      className="bg-blue-500 text-white py-1 px-4 rounded mr-2 hover:bg-blue-600"
                     >
-                      Pending
+                      View Profile
                     </button>
-                  ) : (
-                    <button
-                      onClick={() => handleAddFriend(match.id)}
-                      className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
-                    >
-                      Add Friend
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))
-          ) : (
-            <p>No matches found</p>
-          )}
-        </ul>
+                    {match.friend_status === 'pending' ? (
+                      <button
+                        className="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed"
+                        disabled
+                      >
+                        Pending
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleAddFriend(match.id)}
+                        className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
+                      >
+                        Add Friend
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))
+            ) : (
+              <p>No matches found</p>
+            )}
+          </ul>
+        </div>
       </div>
-
-      <Link to="/home">
-        <button className="mt-6 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
-          Home
-        </button>
-      </Link>
     </div>
   );
 };

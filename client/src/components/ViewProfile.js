@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import Navbar from './Navbar';
+import { DarkModeContext } from './DarkModeContext'; 
 
 const ViewProfile = () => {
   const { id } = useParams(); // Get the user ID from the URL
@@ -7,6 +9,7 @@ const ViewProfile = () => {
   const [isBlocked, setIsBlocked] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
+  const { darkMode, setDarkMode } = useContext(DarkModeContext); 
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -251,65 +254,63 @@ const displayValue = (value) => {
 
   // Render the component
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h2 className="text-3xl font-bold mb-6">{displayValue(profile.name)}&apos;s Profile</h2>
-      <p><strong>Proficient Languages:</strong> {displayValue(profile.proficient_languages)}</p>
-      <p><strong>Learning Languages:</strong> {displayValue(profile.learning_languages)}</p>
-      <p><strong>Age:</strong> {displayValue(profile.age)}</p>
-      <p><strong>Interests:</strong> {displayValue(profile.interests_hobbies)}</p>
-  
-      <div className="flex space-x-4 mt-4"> {/* Add flex and space-y for vertical spacing */}
-          {isFriend ? (
-            <button
-              onClick={() => handleRemoveFriend(id)}
-              className="bg-red-500 text-white py-1 px-4 rounded hover:bg-red-600"
-            >
-              Remove Friend
-            </button>
-          ) : isPending ? (
-            <button
-              onClick={() => handleRemoveRequest(id)} //remove friend is same as remove request because it gets rid of the friendship in the database
-              className="bg-gray-500 text-white py-1 px-4 rounded hover:bg-gray-600"
-            >
-              Pending
-            </button>
-          ) : (
-            <button
-              onClick={() => handleAddFriend(id)}
-              className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
-            >
-              Add Friend
-            </button>
-          )}
+    <div>
+      <Navbar/>
+      <div className="min-h-screen bg-gray-100 p-8">
+        <h2 className="text-3xl font-bold mb-6">{displayValue(profile.name)}&apos;s Profile</h2>
+        <p><strong>Proficient Languages:</strong> {displayValue(profile.proficient_languages)}</p>
+        <p><strong>Learning Languages:</strong> {displayValue(profile.learning_languages)}</p>
+        <p><strong>Age:</strong> {displayValue(profile.age)}</p>
+        <p><strong>Interests:</strong> {displayValue(profile.interests_hobbies)}</p>
+        <p><strong>Timezone:</strong> {displayValue(profile.timezone)}</p>
+    
+        <div className="flex space-x-4 mt-4"> {/* Add flex and space-y for vertical spacing */}
+            {isFriend ? (
+              <button
+                onClick={() => handleRemoveFriend(id)}
+                className="bg-red-500 text-white py-1 px-4 rounded hover:bg-red-600"
+              >
+                Remove Friend
+              </button>
+            ) : isPending ? (
+              <button
+                onClick={() => handleRemoveRequest(id)} //remove friend is same as remove request because it gets rid of the friendship in the database
+                className="bg-gray-500 text-white py-1 px-4 rounded hover:bg-gray-600"
+              >
+                Pending
+              </button>
+            ) : (
+              <button
+                onClick={() => handleAddFriend(id)}
+                className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
+              >
+                Add Friend
+              </button>
+            )}
 
-          {isBlocked ? (
-            <button
-              onClick={() => handleUnblockUser(id)}
-              className="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600"
-            >
-              Unblock
-            </button>
-          ) : (
-            <button
-              onClick={() => handleBlockUser(id)}
-              className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
-            >
-              Block
-            </button>
-          )}
+            {isBlocked ? (
+              <button
+                onClick={() => handleUnblockUser(id)}
+                className="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600"
+              >
+                Unblock
+              </button>
+            ) : (
+              <button
+                onClick={() => handleBlockUser(id)}
+                className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+              >
+                Block
+              </button>
+            )}
 
-        <Link to="/matching">
-          <button className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
-            Back to Matching
-          </button>
-        </Link>
-        <Link to="/home">
-          <button className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
-            Home
-          </button>
-        </Link>
+          <Link to="/matching">
+            <button className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+              Back to Matching
+            </button>
+          </Link>
+        </div>
       </div>
-
     </div>
   );
   
