@@ -40,6 +40,13 @@ const connection = mysql.createConnection({
  database: 'language_app',
 });
 
+// const connection = mysql.createConnection({
+//   host: 'db', // Docker service name for MySQL
+//   user: 'root',
+//   password: 'password',
+//   database: 'language_app',
+// });
+
 
 connection.connect((err) => {
  if (err) {
@@ -346,65 +353,67 @@ app.get('/api/matches', authenticateToken, (req, res) => {
 // FRIEND REQUEST
 // Friend request action route (accept or reject)
 app.post('/api/friend-request/:id/:action', (req, res) => {
- const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
+  const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
 
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No token provided' });
+  }
 
- if (!token) {
-   return res.status(401).json({ success: false, message: 'No token provided' });
- }
-
-
- jwt.verify(token, SECRET_KEY, (err, decoded) => {
-   if (err) {
-     return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
-   }
-
-
-   const user2_id = decoded.id; // The logged-in user
-   const requestId = req.params.id; // ID of the friend request
-   const action = req.params.action; // Action: 'accept' or 'reject'
-
-
-   if (!['accept', 'reject'].includes(action)) {
-     return res.status(400).json({ success: false, message: 'Invalid action' });
-   }
-
-
-   // Update the friendship status in the database
-   let status = action === 'accept' ? 'accepted' : 'rejected';
-   const query = `UPDATE friendships SET status = ?, last_action_at = NOW() WHERE id = ? AND user2_id = ?`;
-
-
-   connection.query(query, [status, requestId, user2_id], (err, results) => {
-     if (err) {
-       console.error(`Error updating friend request: ${err}`);
-       return res.status(500).json({ success: false, message: 'Error processing friend request' });
-     }
-
-     // If the action is accept, add another acceptance relationship between user2 and user1 so friendship is mutual
-     if (action === 'accept') {
-        const insertQuery = `INSERT INTO friendships (user1_id, user2_id, status, created_at) VALUES (?, ?, 'accepted', NOW())`;
-        
-        connection.query(insertQuery, [user2_id, requestId], (err, result) => {
-            if (err) {
-                console.error('Error inserting reverse friendship:', err);
-                return res.status(500).json({ success: false, message: 'Server Error' });
-            }
-            
-            return res.status(200).json({ success: true, message: 'Friendship accepted and mutual relationship created' });
-        });
-    } else {
-        return res.status(200).json({ success: true, message: `Friendship ${status}` });
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
     }
 
-     if (results.affectedRows === 0) {
-       return res.status(404).json({ success: false, message: 'Friend request not found' });
-     }
+    const user2_id = decoded.id; // The logged-in user (this is user2)
+    const requestId = req.params.id; // ID of the friend request
+    const action = req.params.action; // Action: 'accept' or 'reject'
 
-     res.json({ success: true, message: `Friend request ${action}ed successfully` });
-   });
- });
+    if (!['accept', 'reject'].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Invalid action' });
+    }
+
+    // Update the friendship status in the database
+    let status = action === 'accept' ? 'accepted' : 'rejected';
+    const updateQuery = `UPDATE friendships SET status = ?, last_action_at = NOW() WHERE id = ? AND user2_id = ?`;
+
+    // Step 1: Update the friendship status
+    connection.query(updateQuery, [status, requestId, user2_id], (err, results) => {
+      if (err) {
+        console.error(`Error updating friend request: ${err}`);
+        return res.status(500).json({ success: false, message: 'Error processing friend request' });
+      }
+
+      // Step 2: Fetch the user1_id for the friend request
+      const fetchUser1Query = `SELECT user1_id FROM friendships WHERE id = ?`;
+
+      connection.query(fetchUser1Query, [requestId], (err, result) => {
+        if (err || result.length === 0) {
+          console.error('Error fetching user1_id:', err);
+          return res.status(500).json({ success: false, message: 'Server Error' });
+        }
+
+        const user1_id = result[0].user1_id; // Grab user1_id from the result
+
+        // Step 3: If the action is accept, insert the reverse friendship between user2 and user1
+        if (action === 'accept') {
+          const insertQuery = `INSERT INTO friendships (user1_id, user2_id, status) VALUES (?, ?, 'accepted')`;
+
+          connection.query(insertQuery, [user2_id, user1_id], (err, result) => {
+            if (err) {
+              console.error('Error inserting reverse friendship:', err);
+              return res.status(500).json({ success: false, message: 'Server Error' });
+            }
+
+            return res.status(200).json({ success: true, message: 'Friendship accepted and mutual relationship created' });
+          });
+        } else {
+          return res.status(200).json({ success: true, message: `Friendship ${status}` });
+        }
+      });
+    });
+  });
 });
+
 
 
 // CREATE A NEW FRIEND REQUEST
@@ -1140,11 +1149,16 @@ app.get('/api/friendStatus', (req, res) => {
         console.error('Token verification error:', err);
         return res.status(401).json({ success: false, message: 'Invalid token' });
     }
-    const query = 'SELECT status FROM friendships WHERE user1_id = ? AND user2_id = ?';
+    const query = `
+      SELECT status 
+      FROM friendships 
+      WHERE (user1_id = ? AND user2_id = ?) 
+        OR (user1_id = ? AND user2_id = ?)
+    `;
     console.log("user1", user1_id);
     console.log("user2", user2_id);
     
-    connection.query(query, [user1_id, user2_id], (err, result) => {
+    connection.query(query, [user1_id, user2_id, user2_id, user1_id], (err, result) => {
         if (err) {
             console.error('Error executing query:', err);
             return res.status(500).json({ success: false, message: 'Server Error' });
