@@ -35,10 +35,6 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const DarkModeToggle = () => {
-    const [darkMode, setDarkMode] = useState(false);
-  };
-
   return (
     <div>
       <div className={`flex justify-between p-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md`}>

@@ -286,7 +286,7 @@ const handleBlockUser = (userId) => {
      <Navbar/>
 
      {/* Main Content */}
-     <div className="flex flex-grow mt-4 p-4">
+     <div className="flex flex-grow p-4">
        {/* Messages Section */}
        <div className={`w-1/4 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
          <h2 className="text-xl font-bold mb-4">Messages</h2>
