@@ -108,4 +108,4 @@ npm install react-select
 
 # BLOCKS TABLE SETUP
 
-CREATE TABLE blocks ( id INT AUTO_INCREMENT PRIMARY KEY, blocker_id INT NOT NULL, blocked_id INTNOT NULL, FOREIGN KEY (blocker_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (blocked_id) REFERENCES users(id) ON DELETE CASCADE, UNIQUE KEY (blocker_id, blocked_id) );
+CREATE TABLE blocks ( id INT AUTO_INCREMENT PRIMARY KEY, blocker_id INT NOT NULL, blocked_id INT NOT NULL, FOREIGN KEY (blocker_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (blocked_id) REFERENCES users(id) ON DELETE CASCADE, UNIQUE KEY (blocker_id, blocked_id) );

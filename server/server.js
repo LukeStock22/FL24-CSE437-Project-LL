@@ -34,10 +34,10 @@ const client = new OAuth2Client(CLIENT_ID);
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const connection = mysql.createConnection({
- host: 'localhost',
- user: 'master',
- password: 'password',
- database: 'language_app',
+  host: 'db', // Docker service name for MySQL
+  user: 'root',
+  password: 'password',
+  database: 'language_app',
 });
 
 // const connection = mysql.createConnection({
