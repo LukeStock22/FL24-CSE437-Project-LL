@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build: ./client
+    command: npm run dev
+    volumes: 
+      - ./client:/app
+    ports:
+      - "3000:3000" # Serve the frontend on port 3000
+    restart: always
+
+  backend:
+    build: ./server
+    command: node server.js
+    volumes:
+      - ./server:/app
+    ports:
+      - "4000:4000" # Serve the backend on port 4000
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=password
+      - DB_NAME=language_app
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: language_app
+    # ports:
+    #   - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+
+volumes:
+  db_data:
