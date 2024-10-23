@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import mysql from 'mysql2';
 import jwt from 'jsonwebtoken';
