@@ -64,6 +64,7 @@ const EditProfile = () => {
           interests: data.interests || '',
           age: data.age || ''
         });
+        //navigate('/home');
       } else if (res.status === 403 && data.message === 'Failed to authenticate token') {
         localStorage.removeItem('token');
         alert('Session expired. Please log in again.');
@@ -119,7 +120,8 @@ const EditProfile = () => {
 
     if (res.ok) {
       setSuccessMessage('Profile updated successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000); // Clear message after 3 seconds
+      navigate('/home');
+      //setTimeout(() => setSuccessMessage(''), 3000); // Clear message after 3 seconds
     } else {
       setSuccessMessage('Failed to update profile');
     }

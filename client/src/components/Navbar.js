@@ -1,11 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { DarkModeContext } from './DarkModeContext'; 
 
 const Navbar = () => {
   const [username, setUsername] = useState('');
   const { darkMode, setDarkMode } = useContext(DarkModeContext); 
   const navigate = useNavigate();
+  const currentLocation = useLocation();
   
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -40,9 +41,12 @@ const Navbar = () => {
       <div className={`flex justify-between p-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md`}>
         <h1 className="text-3xl font-bold">Welcome, {username}!</h1>
         <div className="space-x-4">
-          <Link to="/home">
-            <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Home</button>
-          </Link>
+          {/* Conditionally render the Home button */}
+          {currentLocation.pathname !== '/home' && (
+            <Link to="/home">
+              <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Home</button>
+            </Link>
+          )}
 
           <button
             onClick={() => setDarkMode(!darkMode)}
@@ -50,15 +54,17 @@ const Navbar = () => {
               darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-500 hover:bg-gray-600'
             } text-white`}
           >
-            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+            {darkMode ? '🌙 Dark' : '☀️ Light'}
           </button>
-
+          {/* Conditionally render the Edit Profile button */}
+          {currentLocation.pathname !== '/edit-profile' && (
+            <Link to="/edit-profile">
+              <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Edit Profile</button>
+            </Link>
+          )}
           <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
             Logout
           </button>
-          <Link to="/edit-profile">
-            <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Edit Profile</button>
-          </Link>
         </div>
       </div>
     </div>
