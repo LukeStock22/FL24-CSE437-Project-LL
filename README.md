@@ -4,6 +4,15 @@
 
 ### Instructions/Link to access: <insert here>
 
+# CHATBOT SETUP
+In server:
+- pip install openai
+- npm install openai
+
+# Video Calling Setup
+ALTER TABLE users
+ADD COLUMN phone_number VARCHAR(15);
+
 
 # TABLES TO ADD IN DB #
 
