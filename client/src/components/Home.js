@@ -377,6 +377,13 @@ const handleBlockUser = (userId) => {
               <p>No friends added yet</p>
             )}
             </ul>
+            {/* Chatbot Button */}
+          <h2 className="text-xl font-bold mt-8 mb-4">Language Practice</h2>
+          <Link to="/chatbot">
+            <button className="bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600 w-full">
+              Go to Chatbot
+            </button>
+          </Link>
        </div>
      </div>
 

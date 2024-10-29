@@ -4,25 +4,11 @@ import Select from 'react-select';
 import Navbar from './Navbar';
 import { DarkModeContext } from './DarkModeContext'; 
 
-// Language options for dropdowns
 const languageOptions = [
   { value: 'English', label: 'English' },
   { value: 'Spanish', label: 'Spanish' },
   { value: 'French', label: 'French' },
-  { value: 'German', label: 'German' },
-  { value: 'Chinese', label: 'Chinese' },
-  { value: 'Japanese', label: 'Japanese' },
-  { value: 'Hindi', label: 'Hindi' },
-  { value: 'Russian', label: 'Russian' },
-  { value: 'Italian', label: 'Italian' },
-  { value: 'Arabic', label: 'Arabic' },
-  { value: 'Portuguese', label: 'Portuguese' },
-  { value: 'Korean', label: 'Korean' },
-  { value: 'Polish', label: 'Polish' },
-  { value: 'Dutch', label: 'Dutch' },
-  { value: 'Turkish', label: 'Turkish' },
-  { value: 'Greek', label: 'Greek' },
-  { value: 'Hebrew', label: 'Hebrew' },
+  // Add more languages as needed
 ];
 
 const timezoneOptions = [
@@ -39,11 +25,12 @@ const EditProfile = () => {
     learningLanguages: [],
     timezone: '',
     interests: '',
-    age: ''
+    age: '',
+    phoneNumber: ''  // Add phoneNumber to profile state
   });
 
-  const [successMessage, setSuccessMessage] = useState(''); // State for success message
-  const { darkMode, setDarkMode } = useContext(DarkModeContext); 
+  const [successMessage, setSuccessMessage] = useState('');
+  const { darkMode, setDarkMode } = useContext(DarkModeContext);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -62,9 +49,9 @@ const EditProfile = () => {
           learningLanguages: data.learning_languages ? data.learning_languages.split(',').map(lang => ({ value: lang, label: lang })) : [],
           timezone: data.timezone || '',
           interests: data.interests || '',
-          age: data.age || ''
+          age: data.age || '',
+          phoneNumber: data.phone_number || ''  // Initialize with existing phone number
         });
-        //navigate('/home');
       } else if (res.status === 403 && data.message === 'Failed to authenticate token') {
         localStorage.removeItem('token');
         alert('Session expired. Please log in again.');
@@ -121,7 +108,6 @@ const EditProfile = () => {
     if (res.ok) {
       setSuccessMessage('Profile updated successfully!');
       navigate('/home');
-      //setTimeout(() => setSuccessMessage(''), 3000); // Clear message after 3 seconds
     } else {
       setSuccessMessage('Failed to update profile');
     }
@@ -182,6 +168,7 @@ const EditProfile = () => {
               placeholder=""
             />
           </div>
+
           <div>
             <label className="block mb-2">Interests/Hobbies:</label>
             <input
@@ -192,6 +179,7 @@ const EditProfile = () => {
               className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
+
           <div>
             <label className="block mb-2">Age:</label>
             <input
@@ -202,6 +190,20 @@ const EditProfile = () => {
               className="w-full p-2 border border-gray-300 rounded"
             />
           </div>
+
+          {/* Phone Number Field */}
+          <div>
+            <label className="block mb-2">Phone Number:</label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={profile.phoneNumber}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded"
+              placeholder="Enter your phone number"
+            />
+          </div>
+
           <div className="flex items-center">
             <button
               type="submit"
@@ -209,7 +211,6 @@ const EditProfile = () => {
             >
               Update Profile
             </button>
-            {/* Show success message */}
             {successMessage && <span className="ml-4 text-green-500">{successMessage}</span>}
           </div>
         </form>

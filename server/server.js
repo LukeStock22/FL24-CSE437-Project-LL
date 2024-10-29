@@ -13,8 +13,7 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 const router = express.Router();
 dotenv.config();
-
-
+import OpenAI from 'openai';
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +21,11 @@ const io = new Server(server, { cors: { origin: '*' } }); // Initialize Socket.I
 
 app.use(express.json());
 app.use(cors());
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+console.log('Using OpenAI API Key:', process.env.OPENAI_API_KEY);
 
 
 const SECRET_KEY = 'veryveryclassified';
@@ -33,19 +37,19 @@ const client = new OAuth2Client(CLIENT_ID);
 //PUT SENDGRID API KEY HERE
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const connection = mysql.createConnection({
-  host: 'db', // Docker service name for MySQL
-  user: 'root',
-  password: 'password',
-  database: 'language_app',
-});
-
 // const connection = mysql.createConnection({
 //   host: 'db', // Docker service name for MySQL
 //   user: 'root',
 //   password: 'password',
 //   database: 'language_app',
 // });
+
+const connection = mysql.createConnection({
+  host: 'localhost', // Docker service name for MySQL
+  user: 'root',
+  password: 'password',
+  database: 'language_app',
+});
 
 
 connection.connect((err) => {
@@ -73,6 +77,30 @@ const authenticateToken = (req, res, next) => {
    next();
  });
 };
+
+//Video calling
+io.on('connection', (socket) => {
+  console.log('New client connected:', socket.id);
+
+  socket.on('start-call', ({ friendId }) => {
+    // Broadcast to the specific friend that a call is being initiated
+    socket.to(friendId).emit('incoming-call', { callerId: socket.id });
+  });
+
+  socket.on('join-call', ({ callerId }) => {
+    io.to(callerId).emit('user-joined');
+  });
+
+  socket.on('end-call', ({ callerId }) => {
+    io.to(callerId).emit('call-ended');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
+
 
 
 // Route for Google OAuth login verification
@@ -214,111 +242,98 @@ app.post('/api/login', async (req, res) => {
 
 // Profile route
 app.get('/api/profile', (req, res) => {
- console.log("HERE");
- const token = req.headers['authorization']?.split(' ')[1]; // Get token from header
- console.log('Token received:', token); // Debug log
+  console.log("HERE");
+  const token = req.headers['authorization']?.split(' ')[1]; // Get token from header
+  console.log('Token received:', token); // Debug log
 
+  if (!token) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
+  }
 
- if (!token) {
-     return res.status(401).json({ success: false, message: 'No token provided' });
- }
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (err) {
+          console.error('Token verification error:', err); // Debug log
+          return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
+      }
 
+      console.log('Decoded token:', decoded);
+      const userId = decoded.id; // Get user ID from the decoded token
+      console.log('Decoded user ID:', userId); // Debug log
 
- jwt.verify(token, SECRET_KEY, (err, decoded) => {
-     if (err) {
-         console.error('Token verification error:', err); // Debug log
-         return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
-     }
+      connection.query('SELECT * FROM users WHERE id = ?', [userId], (err, results) => {
+          if (err) {
+              console.error('Error executing query:', err);
+              return res.status(500).send('Server Error');
+          }
+          if (results.length === 0) {
+              return res.status(404).json({ success: false, message: 'User not found' });
+          }
 
-
-     console.log('Decoded token:', decoded);
-     const userId = decoded.id; // Get user ID from the decoded token
-     console.log('Decoded user ID:', userId); // Debug log
-
-
-     connection.query('SELECT * FROM users WHERE id = ?', [userId], (err, results) => {
-         if (err) {
-             console.error('Error executing query:', err);
-             return res.status(500).send('Server Error');
-         }
-         if (results.length === 0) {
-             return res.status(404).json({ success: false, message: 'User not found' });
-         }
-
-
-         const user = results[0];
-         res.json({
-             success: true, //Currently hardcoding success as we allow null values
-             id: user.id,
-             name: user.name,
-             proficient_languages: user.proficient_languages,
-             learning_languages: user.learning_languages,
-             timezone: user.timezone,
-             interests: user.interests_hobbies,
-             age: user.age
-         });
-     });
- });
+          const user = results[0];
+          res.json({
+              success: true,
+              id: user.id,
+              name: user.name,
+              proficient_languages: user.proficient_languages,
+              learning_languages: user.learning_languages,
+              timezone: user.timezone,
+              interests: user.interests_hobbies,
+              age: user.age,
+              phone_number: user.phone_number  // Include phone number in the response
+          });
+      });
+  });
 });
 
-
-
-
+// Update profile route
 app.post('/api/profile/update', async (req, res) => {
- const { name, proficientLanguages, learningLanguages, timezone, interests, age } = req.body;
- const token = req.headers['authorization']?.split(' ')[1]; // Get token from header
+  const { name, proficientLanguages, learningLanguages, timezone, interests, age, phoneNumber } = req.body;
+  const token = req.headers['authorization']?.split(' ')[1]; // Get token from header
 
+  if (!token) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
+  }
 
- if (!token) {
-     return res.status(401).json({ success: false, message: 'No token provided' });
- }
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (err) {
+          return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
+      }
 
+      const userId = decoded.id; // Get user ID from the decoded token
 
- jwt.verify(token, SECRET_KEY, (err, decoded) => {
-     if (err) {
-         return res.status(403).json({ success: false, message: 'Failed to authenticate token' });
-     }
+      // Set values to null if they are empty strings
+      const updatedValues = [
+          name || null,
+          proficientLanguages || null,
+          learningLanguages || null,
+          timezone || null,
+          interests || null,
+          age ? age : null,
+          phoneNumber || null,  // Add phone number to the update values
+          userId
+      ];
 
+      // Update the user profile in the database
+      connection.query(
+          `UPDATE users
+          SET name = ?, proficient_languages = ?, learning_languages = ?, timezone = ?, interests_hobbies = ?, age = ?, phone_number = ?
+          WHERE id = ?`,
+          updatedValues,
+          (err, results) => {
+              if (err) {
+                  console.error('Error updating profile:', err);
+                  return res.status(500).json({ success: false, message: 'Error updating profile' });
+              }
 
-     const userId = decoded.id; // Get user ID from the decoded token
+              if (results.affectedRows === 0) {
+                  return res.status(404).json({ success: false, message: 'User not found' });
+              }
 
-
-     // Set values to null if they are empty strings
-     const updatedValues = [
-         name || null, // If name is an empty string, set to null
-         proficientLanguages || null, // If proficientLanguages is an empty string, set to null
-         learningLanguages || null, // If learningLanguages is an empty string, set to null
-         timezone || null, // If timezone is an empty string, set to null
-         interests || null, // If interests is an empty string, set to null
-         age ? age : null, // If age is an empty string, set to null; or keep the value
-         userId // User ID from the token
-     ];
-
-
-     // Update the user profile in the database
-     connection.query(
-         `UPDATE users
-         SET name = ?, proficient_languages = ?, learning_languages = ?, timezone = ?, interests_hobbies = ?, age = ?
-         WHERE id = ?`,
-         [...updatedValues],
-         (err, results) => {
-             if (err) {
-                 console.error('Error updating profile:', err);
-                 return res.status(500).json({ success: false, message: 'Error updating profile' });
-             }
-
-
-             if (results.affectedRows === 0) {
-                 return res.status(404).json({ success: false, message: 'User not found' });
-             }
-
-
-             res.json({ success: true, message: 'Profile updated successfully' });
-         }
-     );
- });
+              res.json({ success: true, message: 'Profile updated successfully' });
+          }
+      );
+  });
 });
-
 
 
 
@@ -1169,6 +1184,29 @@ app.get('/api/friendStatus', (req, res) => {
         });
     });
 });
+
+//CHATBOT
+app.post('/api/chat', async (req, res) => {
+  const { message, language } = req.body;
+  console.log('Received message:', message, 'Language:', language);
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: `You are a language learning assistant. Please respond in ${language}.` },
+        { role: 'user', content: message },
+      ],
+    });
+
+    const assistantResponse = response.choices[0].message.content;
+    res.json({ success: true, response: assistantResponse });
+  } catch (error) {
+    console.error('Error during OpenAI API call:', error);
+    res.status(500).json({ success: false, message: 'Error interacting with the assistant' });
+  }
+});
+
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
