@@ -245,16 +245,16 @@ const Matching = () => {
 
   return (
     <div>
-      <Navbar/>
-      <div className="min-h-screen bg-gray-100 p-8">
+      <Navbar />
+      <div className={`min-h-screen p-8 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
         <h2 className="text-3xl font-bold mb-6">Matching</h2>
-        
+  
         <div className="mb-4">
-          <label className="block mb-2">Proficient Language:</label>
+          <label className={`block mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>Proficient Language:</label>
           <select
             value={proficientLanguage}
             onChange={(e) => setProficientLanguage(e.target.value)}
-            className="p-2 border border-gray-300 rounded w-full"
+            className={`p-2 border rounded w-full ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-black'}`}
           >
             <option value="">Select</option>
             {languageOptions.map((lang) => (
@@ -262,13 +262,13 @@ const Matching = () => {
             ))}
           </select>
         </div>
-
+  
         <div className="mb-6">
-          <label className="block mb-2">Learning Language:</label>
+          <label className={`block mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>Learning Language:</label>
           <select
             value={learningLanguage}
             onChange={(e) => setLearningLanguage(e.target.value)}
-            className="p-2 border border-gray-300 rounded w-full"
+            className={`p-2 border rounded w-full ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-black'}`}
           >
             <option value="">Select</option>
             {languageOptions.map((lang) => (
@@ -276,52 +276,126 @@ const Matching = () => {
             ))}
           </select>
         </div>
-        <div className = "mb-10 flex space-x-4">
+        <div className="mb-10 flex space-x-4">
           <div className="w-1/2">
-            <label className="block mb-2">Timezones:</label>
+            <label className={`block mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>Timezones:</label>
             <Select
-              isMulti 
-              options={timezoneOptions} 
-              value={timezones}  
+              isMulti
+              options={timezoneOptions}
+              value={timezones}
               onChange={(selectedOptions) => setTimezones(selectedOptions)}
+              placeholder="Select"
               className="basic-multi-select"
               classNamePrefix="select"
-              placeholder="Select"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                  borderColor: darkMode ? '#4A5568' : '#E2E8F0',
+                }),
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused
+                    ? darkMode ? '#1A202C' : '#E2E8F0'
+                    : darkMode ? '#2D3748' : '#FFFFFF',
+                  color: darkMode ? (state.isFocused ? '#CBD5E0' : '#FFFFFF') : (state.isFocused ? '#4A5568' : '#000000'),
+                  cursor: 'pointer',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#4A5568' : '#CBD5E0',
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: darkMode ? '#A0AEC0' : '#718096',
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+              }}
             />
           </div>
 
           <div className="w-1/2">
-            <label className="block mb-2">Age:</label>
+            <label className={`block mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>Age:</label>
             <Select
-              isMulti 
-              options={ageOptions} 
-              value={ages}  
+              isMulti
+              options={ageOptions}
+              value={ages}
               onChange={(selectedOptions) => setAges(selectedOptions)}
+              placeholder="Select"
               className="basic-multi-select"
               classNamePrefix="select"
-              placeholder="Select"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                  borderColor: darkMode ? '#4A5568' : '#E2E8F0',
+                }),
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused
+                    ? darkMode ? '#1A202C' : '#E2E8F0'
+                    : darkMode ? '#2D3748' : '#FFFFFF',
+                  color: darkMode ? (state.isFocused ? '#CBD5E0' : '#FFFFFF') : (state.isFocused ? '#4A5568' : '#000000'),
+                  cursor: 'pointer',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#4A5568' : '#CBD5E0',
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: darkMode ? '#A0AEC0' : '#718096',
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+              }}
             />
           </div>
-
         </div>
 
+  
         <div>
           <h3 className="text-2xl font-bold mb-4">Matches</h3>
           <ul>
             {filteredMatches.length > 0 ? (
               filteredMatches.map((match) => (
-                <li key={match.id} className="mb-4 p-4 bg-white rounded shadow">
+                <li key={match.id} className={`mb-4 p-4 rounded shadow ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}>
                   <p>{match.name} - {match.proficient_languages} - {match.learning_languages} - {match.timezone}</p>
                   <div className="mt-2">
                     <button
                       onClick={() => navigate(`/view-profile/${match.id}`)}
-                      className="bg-blue-500 text-white py-1 px-4 rounded mr-2 hover:bg-blue-600"
+                      className={`py-1 px-4 rounded mr-2 ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
                     >
                       View Profile
                     </button>
                     {match.friend_status === 'pending' ? (
                       <button
-                        className="bg-gray-500 text-white py-1 px-4 rounded cursor-not-allowed"
+                        className={`py-1 px-4 rounded cursor-not-allowed ${darkMode ? 'bg-gray-600 text-white' : 'bg-gray-300 text-black'}`}
                         disabled
                       >
                         Pending
@@ -329,7 +403,7 @@ const Matching = () => {
                     ) : (
                       <button
                         onClick={() => handleAddFriend(match.id)}
-                        className="bg-green-500 text-white py-1 px-4 rounded hover:bg-green-600"
+                        className={`py-1 px-4 rounded ${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-green-500 hover:bg-green-600'} text-white`}
                       >
                         Add Friend
                       </button>
@@ -345,6 +419,6 @@ const Matching = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Matching;

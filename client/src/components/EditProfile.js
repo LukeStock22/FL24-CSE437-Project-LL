@@ -115,82 +115,201 @@ const EditProfile = () => {
 
   return (
     <div>
-      <Navbar/>
-      <div className="min-h-screen bg-gray-100 p-8">
+      <Navbar />
+      <div className={`min-h-screen p-8 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
         <h2 className="text-3xl font-bold mb-6">Edit Profile</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block mb-2">Name:</label>
+            <label className="block mb-2">{darkMode ? <span className="text-gray-300">Name:</span> : 'Name:'}</label>
             <input
               type="text"
               name="name"
               value={profile.name}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded"
+              className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
             />
           </div>
-
+  
           <div>
-            <label className="block mb-2">Proficient Languages:</label>
+            <label className="block mb-2">{darkMode ? <span className="text-gray-300">Proficient Languages:</span> : 'Proficient Languages:'}</label>
             <Select
               isMulti
               name="proficientLanguages"
               options={languageOptions}
               value={profile.proficientLanguages}
               onChange={handleLanguageChange}
-              className="basic-multi-select"
+              className={`basic-multi-select ${darkMode ? 'bg-gray-800 text-white' : ''}`}
               classNamePrefix="select"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                  borderColor: darkMode ? '#4A5568' : '#E2E8F0',
+                }),
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused
+                    ? darkMode ? '#1A202C' : '#E2E8F0'
+                    : darkMode ? '#2D3748' : '#FFFFFF',
+                  color: darkMode ? (state.isFocused ? '#CBD5E0' : '#FFFFFF') : (state.isFocused ? '#4A5568' : '#000000'),
+                  cursor: 'pointer',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#4A5568' : '#CBD5E0',
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: darkMode ? '#A0AEC0' : '#718096',
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+              }}
             />
           </div>
-
+  
           <div>
-            <label className="block mb-2">Learning Languages:</label>
+            <label className="block mb-2">{darkMode ? <span className="text-gray-300">Learning Languages:</span> : 'Learning Languages:'}</label>
             <Select
               isMulti
               name="learningLanguages"
               options={languageOptions}
               value={profile.learningLanguages}
               onChange={handleLanguageChange}
-              className="basic-multi-select"
+              className={`basic-multi-select ${darkMode ? 'bg-gray-800 text-white' : ''}`}
               classNamePrefix="select"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                  borderColor: darkMode ? '#4A5568' : '#E2E8F0',
+                }),
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused
+                    ? darkMode ? '#1A202C' : '#E2E8F0'
+                    : darkMode ? '#2D3748' : '#FFFFFF',
+                  color: darkMode ? (state.isFocused ? '#CBD5E0' : '#FFFFFF') : (state.isFocused ? '#4A5568' : '#000000'),
+                  cursor: 'pointer',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#4A5568' : '#CBD5E0',
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: darkMode ? '#A0AEC0' : '#718096',
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+              }}
             />
           </div>
-
+  
           <div>
-            <label className="block mb-2">Timezone:</label>
+            <label className="block mb-2">{darkMode ? <span className="text-gray-300">Timezone:</span> : 'Timezone:'}</label>
             <Select
               options={timezoneOptions} 
               value={timezoneOptions.find(option => option.value === profile.timezone)}
               name="timezone"
               onChange={handleTimezoneChange}
-              className="basic-select"
+              className={`basic-select ${darkMode ? 'bg-gray-800 text-white' : ''}`}
               classNamePrefix="select"
               placeholder=""
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                  borderColor: darkMode ? '#4A5568' : '#E2E8F0',
+                }),
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#1F2937' : '#FFFFFF',
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused
+                    ? darkMode ? '#1A202C' : '#E2E8F0'
+                    : darkMode ? '#2D3748' : '#FFFFFF',
+                  color: darkMode ? (state.isFocused ? '#CBD5E0' : '#FFFFFF') : (state.isFocused ? '#4A5568' : '#000000'),
+                  cursor: 'pointer',
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: darkMode ? '#4A5568' : '#CBD5E0',
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: darkMode ? '#A0AEC0' : '#718096',
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: darkMode ? '#FFFFFF' : '#000000',
+                }),
+              }}
             />
           </div>
-
           <div>
-            <label className="block mb-2">Interests/Hobbies:</label>
+            <label className="block mb-2">{darkMode ? <span className="text-gray-300">Interests/Hobbies:</span> : 'Interests/Hobbies:'}</label>
             <input
               type="text"
               name="interests"
               value={profile.interests}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded"
+              className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
             />
           </div>
-
           <div>
-            <label className="block mb-2">Age:</label>
+            <label className="block mb-2">{darkMode ? <span className="text-gray-300">Age:</span> : 'Age:'}</label>
             <input
               type="number"
               name="age"
               value={profile.age}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded"
+              className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
             />
           </div>
 
+          <div>
+            <label className="block mb-2">{darkMode ? <span className="text-gray-300">Phone Number:</span> : 'Phone Number:'}</label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={profile.phoneNumber}
+              onChange={handleChange}
+              className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
+            />
+          </div>
           {/* Phone Number Field */}
           <div>
             <label className="block mb-2">Phone Number:</label>
@@ -203,7 +322,6 @@ const EditProfile = () => {
               placeholder="Enter your phone number"
             />
           </div>
-
           <div className="flex items-center">
             <button
               type="submit"
@@ -217,6 +335,7 @@ const EditProfile = () => {
       </div>
     </div>
   );
+  
 };
 
 export default EditProfile;

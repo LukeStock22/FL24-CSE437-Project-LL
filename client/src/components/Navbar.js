@@ -51,7 +51,7 @@ const Navbar = () => {
           <button
             onClick={() => setDarkMode(!darkMode)}
             className={`py-2 px-4 rounded ${
-              darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-500 hover:bg-gray-600'
+              darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-400 hover:bg-gray-500'
             } text-white`}
           >
             {darkMode ? '🌙 Dark' : '☀️ Light'}
