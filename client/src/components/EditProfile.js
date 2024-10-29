@@ -279,7 +279,6 @@ const EditProfile = () => {
               }}
             />
           </div>
-  
           <div>
             <label className="block mb-2">{darkMode ? <span className="text-gray-300">Interests/Hobbies:</span> : 'Interests/Hobbies:'}</label>
             <input
@@ -290,7 +289,6 @@ const EditProfile = () => {
               className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
             />
           </div>
-  
           <div>
             <label className="block mb-2">{darkMode ? <span className="text-gray-300">Age:</span> : 'Age:'}</label>
             <input
@@ -312,7 +310,18 @@ const EditProfile = () => {
               className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
             />
           </div>
-  
+          {/* Phone Number Field */}
+          <div>
+            <label className="block mb-2">Phone Number:</label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={profile.phoneNumber}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded"
+              placeholder="Enter your phone number"
+            />
+          </div>
           <div className="flex items-center">
             <button
               type="submit"
