@@ -12,6 +12,7 @@ import Landing from './components/Landing';
 import About from './components/About';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import Chatbot from './components/Chatbot';
 import './tailwind.css';
 
 const App = () => {
@@ -30,6 +31,8 @@ const App = () => {
           <Route path="/view-profile/:id" element={<ViewProfile />} />
           <Route path="/forgot-password" element={<ForgotPassword />} /> 
           <Route path="/password-reset/:token" element={<ResetPassword />} />
+          <Route path="/chatbot" element={<Chatbot />} />
+     
         </Routes>
       </Router>
     </DarkModeProvider>
