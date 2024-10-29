@@ -37,19 +37,20 @@ const client = new OAuth2Client(CLIENT_ID);
 //PUT SENDGRID API KEY HERE
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+const connection = mysql.createConnection({
+  host: 'db', // Docker service name for MySQL
+  user: 'root',
+  password: 'password',
+  database: 'language_app',
+});
+
 // const connection = mysql.createConnection({
-//   host: 'db', // Docker service name for MySQL
+//   host: 'localhost', // Docker service name for MySQL
 //   user: 'root',
 //   password: 'password',
 //   database: 'language_app',
 // });
 
-const connection = mysql.createConnection({
-  host: 'localhost', // Docker service name for MySQL
-  user: 'root',
-  password: 'password',
-  database: 'language_app',
-});
 
 
 connection.connect((err) => {
@@ -539,15 +540,20 @@ app.get('/api/friends', (req, res) => {
 
     // Query to get the list of friends along with their chat_id
     const query = `
-      SELECT u.id, u.name, c.id AS chat_id
-      FROM users u
-      JOIN friendships f ON (f.user1_id = u.id OR f.user2_id = u.id) AND u.id != ?
-      LEFT JOIN chats c ON (c.user1_id = u.id OR c.user2_id = u.id) 
-                         AND (c.user1_id = ? OR c.user2_id = ?)
-      WHERE (f.user1_id = ? OR f.user2_id = ?) AND f.status = 'accepted'
-    `;
+    SELECT DISTINCT u.id, u.name, c.id AS chat_id
+    FROM users u
+    JOIN friendships f ON (
+        (f.user1_id = ? AND f.user2_id = u.id) 
+        OR (f.user2_id = ? AND f.user1_id = u.id)
+    )
+    LEFT JOIN chats c ON (
+        (c.user1_id = u.id AND c.user2_id = ?)
+        OR (c.user2_id = u.id AND c.user1_id = ?)
+    )
+    WHERE f.status = 'accepted'
+  `;
 
-    connection.query(query, [userId, userId, userId, userId, userId], (err, results) => {
+    connection.query(query, [userId, userId, userId, userId], (err, results) => {
       if (err) {
         console.error('Error fetching friends:', err);
         return res.status(500).json({ message: 'Error fetching friends' });
