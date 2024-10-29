@@ -299,17 +299,6 @@ const EditProfile = () => {
               className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
             />
           </div>
-
-          <div>
-            <label className="block mb-2">{darkMode ? <span className="text-gray-300">Phone Number:</span> : 'Phone Number:'}</label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={profile.phoneNumber}
-              onChange={handleChange}
-              className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
-            />
-          </div>
           {/* Phone Number Field */}
           <div>
             <label className="block mb-2">Phone Number:</label>
