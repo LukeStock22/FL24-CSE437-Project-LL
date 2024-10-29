@@ -143,7 +143,7 @@ const Messages = () => {
     const senderName = isCurrentUser ? 'You' : msg.sender_name;
 
     return (
-      <div key={`${msg.sender_id}-${index}`} className={`relative mb-4 p-2 rounded ${isCurrentUser ? 'bg-blue-600 self-end' : 'bg-gray-700'} max-w-xs`}>
+      <div key={`${msg.sender_id}-${index}`} className={`relative mb-4 p-2 rounded ${isCurrentUser ? 'bg-blue-500 self-end text-white' : 'bg-gray-700'} max-w-xs`}>
         <strong>{senderName}: </strong>{msg.message}
       </div>
     );
@@ -159,37 +159,42 @@ const Messages = () => {
         
         <div className="mb-8">
           <h3 className="text-2xl font-bold mb-4">Your Chats</h3>
-          {friends.map(friend => (
-            <div key={friend.id} className="mb-2">
+          <div className="flex flex-col">
+          {friends.map((friend, index) => (
+            <div key={friend.id}>
               <button
                 onClick={() => handleChatClick(friend)} // Handles both new and existing chats
-                className={`py-1 px-4 rounded ${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-200 text-black hover:bg-blue-300'}`}
+                className={`w-full py-2 px-4 text-left rounded shadow ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-black hover:bg-gray-200 border-gray-300'}`}
               >
-                Chat with {friend.name}
+              {friend.name}
               </button>
             </div>
           ))}
+          </div>
         </div>
 
         {selectedChat && (
           <div className="mb-8">
             <h3 className="text-2xl font-bold mb-4">Chat</h3>
-            <div className={`p-4 rounded shadow mb-4 ${darkMode ? 'bg-gray-800' : 'bg-white'} max-h-80 overflow-y-auto`}>
+            <div className={`p-4 rounded shadow mb-3 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white'} max-h-80 overflow-y-auto`}>
               {messages.map((msg, index) => renderMessage(msg, index))}
             </div>
 
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              className={`w-full p-2 rounded mb-2 ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-300 text-black'}`}
-            />
-            <button
-              onClick={sendMessage}
-              className={`py-2 px-4 rounded ${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-200 text-black hover:bg-blue-300'}`}
-            >
-              Send
-            </button>
+            <div className="flex items-center">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message here..."
+                className={`flex-grow p-3 shadow rounded-l ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-black'}`}
+              />
+              <button
+                onClick={sendMessage}
+                className={`px-6 py-3 rounded-r ${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-500 text-white hover:bg-blue-300'}`}
+              >
+                Send
+              </button>
+            </div>
           </div>
         )}
       </div>
