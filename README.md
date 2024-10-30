@@ -4,6 +4,10 @@
 
 ### Instructions/Link to access: <insert here>
 
+# VIDEO CALL SETUP
+npm install lib-jitsi-meet
+npm install react-jitsi
+
 # CHATBOT SETUP
 In server:
 - pip install openai

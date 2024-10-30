@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import { DarkModeContext } from './DarkModeContext'; 
 
@@ -10,6 +10,7 @@ const ViewProfile = () => {
   const [isPending, setIsPending] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
   const { darkMode, setDarkMode } = useContext(DarkModeContext); 
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -125,6 +126,12 @@ const displayValue = (value) => {
       return value.join(', ');  // Join array elements with commas
     }
     return value ? value : 'N/A';  // Handle non-array values
+  };
+
+  // Function to start the video call
+  const handleVideoCall = () => {
+    const roomName = `VideoCall-${profile.id}`; // Create a unique room name
+    navigate('/video-call', { state: { roomName } }); // Navigate to the VideoCall page with room name
   };
   
   const handleAddFriend = (user2_id) => {
@@ -303,6 +310,13 @@ const displayValue = (value) => {
               Block
             </button>
           )}
+
+          {isFriend && !isBlocked && (
+            <button onClick={handleVideoCall} className="bg-green-500 text-white py-2 px-4 rounded">
+              Video Call
+            </button>
+          )}
+
   
           <Link to="/matching">
             <button className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">

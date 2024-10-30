@@ -79,21 +79,26 @@ const authenticateToken = (req, res, next) => {
  });
 };
 
-//Video calling
+// Socket.IO events for video calling
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
-  socket.on('start-call', ({ friendId }) => {
-    // Broadcast to the specific friend that a call is being initiated
-    socket.to(friendId).emit('incoming-call', { callerId: socket.id });
+  // Handle initiating a call
+  socket.on('start-call', ({ friendSocketId }) => {
+    console.log(`User ${socket.id} is calling ${friendSocketId}`);
+    socket.to(friendSocketId).emit('incoming-call', { callerSocketId: socket.id });
   });
 
-  socket.on('join-call', ({ callerId }) => {
-    io.to(callerId).emit('user-joined');
+  // Handle joining a call
+  socket.on('join-call', ({ callerSocketId }) => {
+    console.log(`User ${socket.id} joined the call with ${callerSocketId}`);
+    io.to(callerSocketId).emit('user-joined', { userSocketId: socket.id });
   });
 
-  socket.on('end-call', ({ callerId }) => {
-    io.to(callerId).emit('call-ended');
+  // Handle ending a call
+  socket.on('end-call', ({ friendSocketId }) => {
+    console.log(`User ${socket.id} ended the call with ${friendSocketId}`);
+    io.to(friendSocketId).emit('call-ended', { userSocketId: socket.id });
   });
 
   socket.on('disconnect', () => {

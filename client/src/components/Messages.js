@@ -1,62 +1,72 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { Link } from 'react-router-dom';
-import { io } from 'socket.io-client';  // Import socket.io-client
 import Navbar from './Navbar';
-import { DarkModeContext } from './DarkModeContext'; 
-
-const socket = io('http://localhost:4000'); // Connect to the backend
+import { DarkModeContext } from './DarkModeContext';
+import { SocketContext } from '../context/SocketContext';
 
 const Messages = () => {
+  const { socket, isSocketConnected } = useContext(SocketContext); // Destructure socket and connection status
+  const { darkMode } = useContext(DarkModeContext);
+
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [friends, setFriends] = useState([]);
-  const { darkMode, setDarkMode } = useContext(DarkModeContext); 
+  
+  const hasJoinedChat = useRef(false);
 
-  const hasJoinedChat = useRef(false); // To prevent multiple join events
-
+  // Fetch initial data for chats and friends
   useEffect(() => {
     fetchChats();
-    fetchFriends(); // Fetch friends once when the component is loaded
+    fetchFriends();
   }, []);
 
   useEffect(() => {
-    if (selectedChat && !hasJoinedChat.current) {
-      // Join the chat room only once
+    console.log('Socket connection:', socket); // Confirm if socket is connected on load
+  }, [socket]);
+
+  // Join the selected chat room when selectedChat changes
+  useEffect(() => {
+    if (selectedChat && isSocketConnected) {
       const token = localStorage.getItem('token');
       const userId = JSON.parse(atob(token.split('.')[1])).id;
+
       socket.emit('join_chat', { chat_id: selectedChat, user_id: userId });
+      console.log(`Joined chat room: ${selectedChat}`);
+      hasJoinedChat.current = selectedChat;
 
-      hasJoinedChat.current = true; // Mark that the user has joined the chat
+      return () => {
+        hasJoinedChat.current = null;
+      };
     }
-  }, [selectedChat]);
+  }, [selectedChat, isSocketConnected, socket]);
 
+  // Real-time message updates for the selected chat
   useEffect(() => {
-    const handleReceiveMessage = (messageData) => {
-      setMessages(prevMessages => [...prevMessages, messageData]);
-    };
+    if (isSocketConnected) {
+      const handleReceiveMessage = (messageData) => {
+        setMessages((prevMessages) => [...prevMessages, messageData]);
+        console.log('Received message:', messageData);
+      };
 
-    socket.on('receive_message', handleReceiveMessage);
+      socket.on('receive_message', handleReceiveMessage);
 
-    // Cleanup the event listener on component unmount or when selectedChat changes
-    return () => {
-      socket.off('receive_message', handleReceiveMessage);
-    };
-  }, [selectedChat]);
+      return () => {
+        socket.off('receive_message', handleReceiveMessage);
+      };
+    }
+  }, [isSocketConnected, socket]);
 
   useEffect(() => {
     if (selectedChat) {
-        const token = localStorage.getItem('token');
-        fetch(`http://localhost:4000/api/messages/${selectedChat}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        })
+      const token = localStorage.getItem('token');
+      fetch(`http://localhost:4000/api/messages/${selectedChat}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
         .then((res) => res.json())
-        .then((data) => {
-            setMessages(data); // Load the messages from the server
-        })
+        .then((data) => setMessages(data))
         .catch((err) => console.error('Error fetching messages:', err));
     }
   }, [selectedChat]);
@@ -64,81 +74,80 @@ const Messages = () => {
   const fetchChats = () => {
     const token = localStorage.getItem('token');
     fetch('http://localhost:4000/api/chats', {
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
-      .then((data) => {
-        setChats(data);
-      })
+      .then((data) => setChats(data))
       .catch((err) => console.error('Error fetching chats:', err));
   };
 
   const fetchFriends = () => {
     const token = localStorage.getItem('token');
     fetch('http://localhost:4000/api/friends', {
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((data) => setFriends(data))
       .catch((err) => console.error('Error fetching friends:', err));
   };
 
-  const startChat = (friend_id) => {
+  const startChat = (friendId) => {
     const token = localStorage.getItem('token');
     fetch('http://localhost:4000/api/chats/start', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ friend_id }),
+      body: JSON.stringify({ friend_id: friendId }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          fetchChats(); // Refresh chats after starting a new chat
+          fetchChats();
         }
       })
       .catch((err) => console.error('Error starting chat:', err));
   };
 
   const handleChatClick = (friend) => {
-    const chat = chats.find(chat => chat.friend_id === friend.id);
-
+    const chat = chats.find((chat) => chat.friend_id === friend.id);
     if (chat) {
-      // If a chat already exists, set the selected chat
       setSelectedChat(chat.id);
     } else {
-      // If no chat exists, start a new chat with this friend
       startChat(friend.id);
     }
   };
 
   const sendMessage = () => {
-    if (!selectedChat || !newMessage) return;
-
+    console.log('sendMessage function called');
+  
+    if (!selectedChat || !newMessage || !isSocketConnected) {
+      console.error('Cannot send message - Missing data or socket connection');
+      return;
+    }
+  
     const token = localStorage.getItem('token');
     const userId = JSON.parse(atob(token.split('.')[1])).id;
     const userName = JSON.parse(atob(token.split('.')[1])).name;
-
+  
     const messageData = {
-        chat_id: selectedChat,
-        sender_name: userName, // Use the real sender's name
-        message: newMessage,
-        sender_id: userId,
+      chat_id: selectedChat,
+      sender_name: userName,
+      message: newMessage,
+      sender_id: userId,
     };
-
-    // Emit the message to the server
-    socket.emit('send_message', messageData);
-
-    // Clear the input field
-    setNewMessage('');
+  
+    console.log('Sending message:', messageData);
+  
+    socket.emit('send_message', messageData); // Emit message to the server only
+    setNewMessage(''); // Clear input after sending
   };
+  
 
   const renderMessage = (msg, index) => {
     const token = localStorage.getItem('token');
     const userId = JSON.parse(atob(token.split('.')[1])).id;
-
     const isCurrentUser = msg.sender_id === userId;
     const senderName = isCurrentUser ? 'You' : msg.sender_name;
 
@@ -151,25 +160,23 @@ const Messages = () => {
 
   return (
     <div>
-      <Navbar/>
+      <Navbar />
       <div className={`min-h-screen p-8 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
         <h2 className="text-3xl font-bold mb-6">Messages</h2>
 
-        {/* Remove Start a Chat section */}
-        
         <div className="mb-8">
           <h3 className="text-2xl font-bold mb-4">Your Chats</h3>
           <div className="flex flex-col">
-          {friends.map((friend, index) => (
-            <div key={friend.id}>
-              <button
-                onClick={() => handleChatClick(friend)} // Handles both new and existing chats
-                className={`w-full py-2 px-4 text-left rounded shadow ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-black hover:bg-gray-200 border-gray-300'}`}
-              >
-              {friend.name}
-              </button>
-            </div>
-          ))}
+            {friends.map((friend) => (
+              <div key={friend.id}>
+                <button
+                  onClick={() => handleChatClick(friend)}
+                  className={`w-full py-2 px-4 text-left rounded shadow ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-black hover:bg-gray-200 border-gray-300'}`}
+                >
+                  {friend.name}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
 
