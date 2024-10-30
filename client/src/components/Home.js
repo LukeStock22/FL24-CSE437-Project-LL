@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import SearchUsers from './SearchUsers';
 import Navbar from './Navbar';
 import { DarkModeContext } from './DarkModeContext'; 
+import Notifications from './Notifications';
 
 
 const Home = () => {
@@ -310,6 +311,7 @@ const handleBlockUser = (userId) => {
 
 
        {/* Notifications Section */}
+       {/*}
        <div className={`w-1/2 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
          <h2 className="text-xl font-bold mb-4">Notifications</h2>
          <div className="space-y-2">
@@ -341,7 +343,10 @@ const handleBlockUser = (userId) => {
              <p className="text-sm">No new notifications</p>
            )}
          </div>
-       </div>
+       </div> */}
+      <div className={`w-1/2 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
+        <Notifications />
+      </div>
 
 
        {/* Find Matches and Manage Friends Section */}
