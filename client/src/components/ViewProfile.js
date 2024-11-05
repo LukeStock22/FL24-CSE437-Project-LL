@@ -311,11 +311,13 @@ const displayValue = (value) => {
             </button>
           )}
 
+          {/*
           {isFriend && !isBlocked && (
             <button onClick={handleVideoCall} className="bg-green-500 text-white py-2 px-4 rounded">
               Video Call
             </button>
           )}
+          */}
 
   
           <Link to="/matching">
