@@ -13,18 +13,24 @@ const SearchUsers = ({users}) => {
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-
+  
     if (term) {
-        const filtered = users.filter((user) => {
-            const isBlockedBy = blockedByUsers.includes(user.id); 
-            const isCurrentUser = user.id === currentUser.id;
-            return user.name.toLowerCase().includes(term) && !isBlockedBy && !isCurrentUser;
-          });
-        setFilteredUsers(filtered);
-      } else {
-        setFilteredUsers([]); 
-      }
+      const filtered = users.filter((user) => {
+        const isBlockedBy = blockedByUsers.includes(user.id);
+        const isCurrentUser = currentUser && user.id === currentUser.id;
+        return (
+          user.name && // Ensure user.name exists
+          user.name.toLowerCase().includes(term) &&
+          !isBlockedBy &&
+          !isCurrentUser
+        );
+      });
+      setFilteredUsers(filtered);
+    } else {
+      setFilteredUsers([]);
+    }
   };
+  
 
   const navigate = useNavigate();
 
