@@ -301,13 +301,13 @@ const EditProfile = () => {
           </div>
           {/* Phone Number Field */}
           <div>
-            <label className="block mb-2">Phone Number:</label>
+          <label className="block mb-2">{darkMode ? <span className="text-gray-300">Phone Number:</span> : 'Age:'}</label>
             <input
               type="tel"
               name="phoneNumber"
               value={profile.phoneNumber}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded"
+              className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'border-gray-300'}`}
               placeholder="Enter your phone number"
             />
           </div>
