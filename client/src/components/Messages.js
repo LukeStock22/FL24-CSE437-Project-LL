@@ -2,13 +2,16 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import Navbar from './Navbar';
 import { DarkModeContext } from './DarkModeContext';
 import { SocketContext } from '../context/SocketContext';
+import { useNavigate } from 'react-router-dom';
 
 const Messages = () => {
-  const { socket, isSocketConnected } = useContext(SocketContext); // Destructure socket and connection status
+  const { socket, isSocketConnected } = useContext(SocketContext);
   const { darkMode } = useContext(DarkModeContext);
+  const navigate = useNavigate();
 
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
+  const [selectedFriendName, setSelectedFriendName] = useState(''); // State for friend's name
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [friends, setFriends] = useState([]);
@@ -112,6 +115,7 @@ const Messages = () => {
 
   const handleChatClick = (friend) => {
     const chat = chats.find((chat) => chat.friend_id === friend.id);
+    setSelectedFriendName(friend.name); // Set friend's name when chat is selected
     if (chat) {
       setSelectedChat(chat.id);
     } else {
@@ -144,6 +148,30 @@ const Messages = () => {
     setNewMessage(''); // Clear input after sending
   };
   
+  const handleVideoCall = () => {
+    if (!selectedChat) {
+      console.error("No chat selected");
+      return;
+    }
+  
+    const roomName = `VideoCall-${selectedChat}`; // Unique room name based on chat ID
+  
+    // Find the chat associated with the selected chat ID
+    const chat = chats.find((chat) => chat.id === selectedChat);
+    if (chat) {
+      const friendId = chat.friend_id; // Get the friend's ID from the chat
+      socket.emit('start-video-call', { roomName, friendId });
+      navigate('/video-call', { state: { roomName } }); // Navigate to the VideoCall page with the room name
+    } else {
+      console.error("Chat not found for the selected chat ID");
+    }
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      sendMessage();
+    }
+  };
 
   const renderMessage = (msg, index) => {
     const token = localStorage.getItem('token');
@@ -182,16 +210,17 @@ const Messages = () => {
 
         {selectedChat && (
           <div className="mb-8">
-            <h3 className="text-2xl font-bold mb-4">Chat</h3>
+            <h3 className="text-2xl font-bold mb-4">Chat with {selectedFriendName}</h3> {/* Updated Title */}
             <div className={`p-4 rounded shadow mb-3 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white'} max-h-80 overflow-y-auto`}>
               {messages.map((msg, index) => renderMessage(msg, index))}
             </div>
 
-            <div className="flex items-center">
+            <div className="flex items-center mb-4">
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Type your message here..."
                 className={`flex-grow p-3 shadow rounded-l ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-black'}`}
               />
@@ -202,6 +231,14 @@ const Messages = () => {
                 Send
               </button>
             </div>
+
+            {/* Video Call Button */}
+            <button
+              onClick={handleVideoCall}
+              className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+            >
+              Video Call
+            </button>
           </div>
         )}
       </div>

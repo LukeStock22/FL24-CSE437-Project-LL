@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 
 const VideoCall = () => {
   const location = useLocation();
-  const { roomName } = location.state || {};
+  const { roomName } = location.state || {}; // Room name must be passed here
   const jitsiContainerRef = useRef(null);
 
   useEffect(() => {
@@ -12,10 +12,10 @@ const VideoCall = () => {
       return;
     }
 
-    // Load Jitsi iframe
+    // Initialize the Jitsi iframe
     const domain = 'meet.jit.si';
     const options = {
-      roomName: roomName,
+      roomName,
       width: '100%',
       height: '100%',
       parentNode: jitsiContainerRef.current,
@@ -43,4 +43,5 @@ const VideoCall = () => {
 };
 
 export default VideoCall;
+
 
