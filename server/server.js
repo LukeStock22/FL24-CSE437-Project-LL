@@ -37,12 +37,12 @@ const client = new OAuth2Client(CLIENT_ID);
 //PUT SENDGRID API KEY HERE
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// const connection = mysql.createConnection({
-//   host: 'db', // Docker service name for MySQL
-//   user: 'root',
-//   password: 'password',
-//   database: 'language_app',
-// });
+const connection = mysql.createConnection({
+  host: 'db', // Docker service name for MySQL
+  user: 'root',
+  password: 'password',
+  database: 'language_app',
+});
 
 // const connection = mysql.createConnection({
 //   host: 'localhost', // Docker service name for MySQL
@@ -51,12 +51,12 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 //   database: 'language_app',
 // });
 
-const connection = mysql.createConnection({
-  host: 'localhost', // Docker service name for MySQL
-  user: 'master',
-  password: 'password',
-  database: 'language_app',
-});
+// const connection = mysql.createConnection({
+//   host: 'localhost', // Docker service name for MySQL
+//   user: 'master',
+//   password: 'password',
+//   database: 'language_app',
+// });
 
 
 connection.connect((err) => {
