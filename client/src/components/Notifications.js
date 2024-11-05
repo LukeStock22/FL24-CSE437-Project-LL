@@ -8,26 +8,27 @@ const Notifications = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [viewProfile, setViewProfile] = useState(null);
 
   // Fetch initial notifications on component mount
   useEffect(() => {
     const fetchNotifications = async () => {
       const token = localStorage.getItem('token');
-      try {
-        const response = await fetch('http://localhost:4000/api/notifications', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+      fetch('http://localhost:4000/api/notifications', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setNotifications(data);
+          setUnreadCount(data.length);
+        })
+        .catch((error) => {
+          console.error('Error fetching notifications:', error);
         });
-        const data = await response.json();
-        if (data.success) {
-          setNotifications(data.notifications);
-          setUnreadCount(data.notifications.length); // Set initial unread count
-        }
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      }
     };
     fetchNotifications();
   }, []);
@@ -112,6 +113,24 @@ const Notifications = () => {
     }
   };
 
+  const handleViewProfile = (userId) => {
+    const token = localStorage.getItem('token');
+    fetch(`http://localhost:4000/api/view-profile/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data) {
+          setViewProfile(data);
+        } else {
+          alert('Failed to fetch profile');
+        }
+      })
+      .catch((error) => console.error('Error fetching profile:', error));
+  };
+
   // Dismiss a notification
   const handleDismiss = (id) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -124,8 +143,9 @@ const Notifications = () => {
       {notifications.length > 0 ? (
         notifications.map((notification) => (
           <div key={notification.id} className="mb-2 p-2 border-b">
+            
             {notification.type === 'call' ? (
-              <>
+              <div>
                 <p className="text-sm mb-2">{notification.message}</p>
                 <button
                   onClick={() => handleAcceptCall(notification)}
@@ -139,29 +159,38 @@ const Notifications = () => {
                 >
                   Dismiss
                 </button>
-              </>
+              </div>
             ) : (
-              <>
+              <div>
                 <p className="text-sm mb-2">Friend request from {notification.user1_name}</p>
-                <button
-                  onClick={() => handleFriendRequestAction(notification.id, 'accept')}
-                  className="bg-blue-500 text-white py-1 px-2 rounded mr-2 hover:bg-blue-600"
-                >
-                  Accept
-                </button>
-                <button
-                  onClick={() => handleFriendRequestAction(notification.id, 'reject')}
-                  className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
-                >
-                  Reject
-                </button>
-              </>
+                  <button
+                    onClick={() => navigate(`/view-profile/${notification.user1_id}`)}
+                    className="bg-green-500 text-white py-1 px-2 rounded mr-2 hover:bg-green-600"
+
+                  >
+                    View Profile
+                  </button>
+                  <button
+                    onClick={() => handleFriendRequestAction(notification.id, 'accept')}
+                    className="bg-blue-500 text-white py-1 px-2 rounded mr-2 hover:bg-blue-600"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleFriendRequestAction(notification.id, 'reject')}
+                    className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
+                  >
+                    Reject
+                  </button>
+               </div>
             )}
           </div>
         ))
       ) : (
         <p className="text-sm">No new notifications</p>
       )}
+
+      
     </div>
   );
 };
