@@ -251,6 +251,7 @@ const Messages = () => {
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     placeholder="Type your message here..."
                     className={`flex-grow p-3 shadow rounded-l ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-black'}`}
                   />
