@@ -288,62 +288,37 @@ const handleBlockUser = (userId) => {
 
      {/* Main Content */}
      <div className="flex flex-grow p-4">
-       {/* Messages Section */}
        <div className={`w-1/4 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
-         <h2 className="text-xl font-bold mb-4">Messages</h2>
-         <ul>
-           {friends.length > 0 ? (
-             friends.map((friend) => (
-               <li key={friend.id} className="p-2 border-b">
-                 {friend.name} - Last Message: {getRecentMessage(friend.id)}
-               </li>
-             ))
-           ) : (
-             <p>No friends added yet</p>
-           )}
-         </ul>
-         <Link to="/messages">
-           <button className="mt-2 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-             Check Messages
-           </button>
-         </Link>
+        {/* Messages Section */}
+        <div>
+          <h2 className="text-xl font-bold mb-4">Messages</h2>
+          <ul>
+            {friends.length > 0 ? (
+              friends.map((friend) => (
+                <li key={friend.id} className="p-2 border-b">
+                  {friend.name} - Last Message: {getRecentMessage(friend.id)}
+                </li>
+              ))
+            ) : (
+              <p>No friends added yet</p>
+            )}
+          </ul>
+          <Link to="/messages">
+            <button className="mt-2 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+              Check Messages
+            </button>
+          </Link>
+         </div>
+         <h2 className="text-xl font-bold mt-16 mb-4">Language Practice</h2>
+          <Link to="/chatbot">
+            <button className="bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600 w-full">
+              Go to Chatbot
+            </button>
+          </Link>
        </div>
 
 
        {/* Notifications Section */}
-       {/*}
-       <div className={`w-1/2 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
-         <h2 className="text-xl font-bold mb-4">Notifications</h2>
-         <div className="space-y-2">
-           {notifications.length > 0 ? (
-             notifications.map((notification) => (
-               <div key={notification.id} className="mb-2 p-2 border-b">
-                 <p className="text-sm mb-2">Friend request from {notification.user1_name}</p>
-                 <button
-                   onClick={() => handleViewProfile(notification.user1_id)}
-                   className="bg-green-500 text-white py-1 px-2 rounded mr-2 hover:bg-green-600"
-                 >
-                   View Profile
-                 </button>
-                 <button
-                   onClick={() => handleAction(notification.id, 'accept')}
-                   className="bg-blue-500 text-white py-1 px-2 rounded mr-2 hover:bg-blue-600"
-                 >
-                   Accept
-                 </button>
-                 <button
-                   onClick={() => handleAction(notification.id, 'reject')}
-                   className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
-                 >
-                   Reject
-                 </button>
-               </div>
-             ))
-           ) : (
-             <p className="text-sm">No new notifications</p>
-           )}
-         </div>
-       </div> */}
       <div className={`w-1/2 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md mr-4`}>
         <Notifications />
       </div>
@@ -357,7 +332,7 @@ const handleBlockUser = (userId) => {
          <Link to="/matching">
            <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Add Friends</button>
          </Link>
-         <h2 className="text-xl font-bold mt-8 mb-4">Manage Friends</h2>
+         <h2 className="text-xl font-bold mt-8 mb-4">Friends</h2>
             <ul>
               {friends.length > 0 ? (
               friends.map((friend) => (
@@ -368,27 +343,13 @@ const handleBlockUser = (userId) => {
                 >
                   {friend.name}
                 </button>
-                 <div className="space-x-2">
-                  <button
-                    onClick={() => handleRemoveFriend(friend.id)}
-                    className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
-                  >
-                    Remove
-                  </button>
-                </div>
                 </li>
               ))
             ) : (
               <p>No friends added yet</p>
             )}
             </ul>
-            {/* Chatbot Button */}
-          <h2 className="text-xl font-bold mt-8 mb-4">Language Practice</h2>
-          <Link to="/chatbot">
-            <button className="bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600 w-full">
-              Go to Chatbot
-            </button>
-          </Link>
+            
        </div>
      </div>
 
@@ -412,14 +373,20 @@ const handleBlockUser = (userId) => {
            <div className="mt-4 space-x-2"> 
             <button
               onClick={() => navigate(`/view-profile/${viewProfile.id}`)}
-              className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
+              className="bg-gray-500 text-white py-2 px-2 rounded hover:bg-gray-600"
             >
               Full Profile
+            </button>
+            <button
+              onClick={() => handleRemoveFriend(viewProfile.id)}
+              className="bg-red-500 text-white py-2 px-2 rounded hover:bg-red-600"
+            >
+              Remove
             </button>
            {isBlocked ? (
             <button
               onClick={() => handleUnblockUser(viewProfile.id)}
-              className="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600"
+              className="bg-yellow-500 text-white py-2 px-2 rounded hover:bg-yellow-600"
             >
               Unblock
             </button>

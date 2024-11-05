@@ -37,12 +37,12 @@ const client = new OAuth2Client(CLIENT_ID);
 //PUT SENDGRID API KEY HERE
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const connection = mysql.createConnection({
-  host: 'db', // Docker service name for MySQL
-  user: 'root',
-  password: 'password',
-  database: 'language_app',
-});
+// const connection = mysql.createConnection({
+//   host: 'db', // Docker service name for MySQL
+//   user: 'root',
+//   password: 'password',
+//   database: 'language_app',
+// });
 
 // const connection = mysql.createConnection({
 //   host: 'localhost', // Docker service name for MySQL
@@ -51,6 +51,12 @@ const connection = mysql.createConnection({
 //   database: 'language_app',
 // });
 
+const connection = mysql.createConnection({
+  host: 'localhost', // Docker service name for MySQL
+  user: 'master',
+  password: 'password',
+  database: 'language_app',
+});
 
 
 connection.connect((err) => {
@@ -388,7 +394,7 @@ app.get('/api/matches', authenticateToken, (req, res) => {
 // FRIEND REQUEST
 // Friend request action route (accept or reject)
 app.post('/api/friend-request/:id/:action', (req, res) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
+  const token = req.headers['authorization']?.split(' ')[1]; 
 
   if (!token) {
     return res.status(401).json({ success: false, message: 'No token provided' });
@@ -407,30 +413,42 @@ app.post('/api/friend-request/:id/:action', (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid action' });
     }
 
-    // Update the friendship status in the database
-    let status = action === 'accept' ? 'accepted' : 'rejected';
-    const updateQuery = `UPDATE friendships SET status = ?, last_action_at = NOW() WHERE id = ? AND user2_id = ?`;
+    // if the action is 'reject', delete the friendship record
+    if (action === 'reject') {
+      const deleteQuery = `DELETE FROM friendships WHERE id = ? AND user2_id = ?`;
 
-    // Step 1: Update the friendship status
-    connection.query(updateQuery, [status, requestId, user2_id], (err, results) => {
-      if (err) {
-        console.error(`Error updating friend request: ${err}`);
-        return res.status(500).json({ success: false, message: 'Error processing friend request' });
-      }
-
-      // Step 2: Fetch the user1_id for the friend request
-      const fetchUser1Query = `SELECT user1_id FROM friendships WHERE id = ?`;
-
-      connection.query(fetchUser1Query, [requestId], (err, result) => {
-        if (err || result.length === 0) {
-          console.error('Error fetching user1_id:', err);
-          return res.status(500).json({ success: false, message: 'Server Error' });
+      connection.query(deleteQuery, [requestId, user2_id], (err, results) => {
+        if (err) {
+          console.error(`Error deleting friend request: ${err}`);
+          return res.status(500).json({ success: false, message: 'Error processing friend request' });
         }
 
-        const user1_id = result[0].user1_id; // Grab user1_id from the result
+        return res.status(200).json({ success: true, message: 'Friend request rejected' });
+      });
+    } else {
+      // if the action is 'accept', update the status
+      const status = 'accepted';
+      const updateQuery = `UPDATE friendships SET status = ?, last_action_at = NOW() WHERE id = ? AND user2_id = ?`;
 
-        // Step 3: If the action is accept, insert the reverse friendship between user2 and user1
-        if (action === 'accept') {
+      // updating the friendship status
+      connection.query(updateQuery, [status, requestId, user2_id], (err, results) => {
+        if (err) {
+          console.error(`Error updating friend request: ${err}`);
+          return res.status(500).json({ success: false, message: 'Error processing friend request' });
+        }
+
+        // fetching user1_id for the friend request
+        const fetchUser1Query = `SELECT user1_id FROM friendships WHERE id = ?`;
+
+        connection.query(fetchUser1Query, [requestId], (err, result) => {
+          if (err || result.length === 0) {
+            console.error('Error fetching user1_id:', err);
+            return res.status(500).json({ success: false, message: 'Server Error' });
+          }
+
+          const user1_id = result[0].user1_id;
+
+          // insert the reverse friendship if the action is accept so friendship is mutual
           const insertQuery = `INSERT INTO friendships (user1_id, user2_id, status) VALUES (?, ?, 'accepted')`;
 
           connection.query(insertQuery, [user2_id, user1_id], (err, result) => {
@@ -441,13 +459,12 @@ app.post('/api/friend-request/:id/:action', (req, res) => {
 
             return res.status(200).json({ success: true, message: 'Friendship accepted and mutual relationship created' });
           });
-        } else {
-          return res.status(200).json({ success: true, message: `Friendship ${status}` });
-        }
+        });
       });
-    });
+    }
   });
 });
+
 
 
 
