@@ -5,8 +5,8 @@ import PropTypes from 'prop-types';
 
 export const SocketContext = createContext();
 
-export const SocketProvider = ({ children, isAuthenticated }) => {
-  const [isSocketConnected, setIsSocketConnected] = useState(false); // Track connection status
+export const SocketProvider = ({ children, isAuthenticated, userName }) => {
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
   const socket = useRef(null);
 
   useEffect(() => {
@@ -18,6 +18,11 @@ export const SocketProvider = ({ children, isAuthenticated }) => {
       socket.current.on('connect', () => {
         console.log('Socket connected:', socket.current.id);
         setIsSocketConnected(true);
+
+        // Emit the username to the server after connection
+        if (userName) {
+          socket.current.emit('set-username', userName);
+        }
       });
 
       socket.current.on('disconnect', () => {
@@ -31,7 +36,7 @@ export const SocketProvider = ({ children, isAuthenticated }) => {
         }
       };
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, userName]);
 
   return (
     <SocketContext.Provider value={{ socket: socket.current, isSocketConnected }}>
@@ -43,4 +48,5 @@ export const SocketProvider = ({ children, isAuthenticated }) => {
 SocketProvider.propTypes = {
   children: PropTypes.node.isRequired,
   isAuthenticated: PropTypes.bool.isRequired,
+  userName: PropTypes.string, // Optional if userName isn't always available
 };

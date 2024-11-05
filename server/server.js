@@ -83,8 +83,14 @@ const authenticateToken = (req, res, next) => {
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
+  // Listen for a custom event to set the username when the user connects
+  socket.on('set-username', (userName) => {
+    socket.userName = userName; // Set the username on the socket
+    console.log(`Username set for socket ${socket.id}: ${socket.userName}`);
+  });
+
   // Handle initiating a call
-  socket.on('start-call', ({ friendSocketId }) => {
+  socket.on('start-video-call', ({ friendSocketId }) => {
     console.log(`User ${socket.id} is calling ${friendSocketId}`);
     socket.to(friendSocketId).emit('incoming-call', { callerSocketId: socket.id });
   });
@@ -105,6 +111,14 @@ io.on('connection', (socket) => {
     console.log('Client disconnected:', socket.id);
   });
 });
+
+// Example: Handling start-video-call in server code (Node.js)
+/*
+socket.on('start-video-call', ({ roomName, friendId }) => {
+  // Send incoming call notification to the friend with the room information
+  io.to(friendId).emit('incoming-call', { roomName, callerName: socket.userName });
+});
+*/
 
 
 

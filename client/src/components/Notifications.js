@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { SocketContext } from '../context/SocketContext';
 
 const Notifications = () => {
-  const { socket, isSocketConnected } = useContext(SocketContext); // Destructure socket and connection status
+  const { socket, isSocketConnected } = useContext(SocketContext);
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -16,7 +16,7 @@ const Notifications = () => {
       try {
         const response = await fetch('http://localhost:4000/api/notifications', {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
@@ -40,23 +40,26 @@ const Notifications = () => {
         setUnreadCount((prev) => prev + 1);
       };
 
-      socket.on('notification', handleNotification); // Listen for notifications
+      socket.on('notification', handleNotification); // Listen for general notifications
 
       return () => {
         socket.off('notification', handleNotification); // Cleanup on unmount
       };
+    } else {
+      console.error('Socket is not connected');
     }
   }, [socket, isSocketConnected]);
 
   // Real-time incoming call listener
   useEffect(() => {
     if (socket && isSocketConnected) {
-      const handleIncomingCall = ({ callerSocketId, callerName }) => {
+      const handleIncomingCall = ({ roomName, callerName }) => {
         const newCallNotification = {
-          id: callerSocketId,
+          id: roomName, // Use roomName as a unique identifier for video call notifications
           type: 'call',
           name: callerName,
           message: `${callerName} is calling you!`,
+          roomName,
         };
         setNotifications((prev) => [...prev, newCallNotification]);
         setUnreadCount((prev) => prev + 1);
@@ -67,15 +70,19 @@ const Notifications = () => {
       return () => {
         socket.off('incoming-call', handleIncomingCall); // Cleanup on unmount
       };
+    } else {
+      console.error('Socket is not connected');
     }
   }, [socket, isSocketConnected]);
 
-  // Accept call notification
+  // Accept call notification and join video call
   const handleAcceptCall = (notification) => {
     if (socket && isSocketConnected) {
       socket.emit('join-call', { callerSocketId: notification.id });
-      navigate('/video-call', { state: { roomName: `VideoCall-${notification.id}` } });
+      navigate('/video-call', { state: { roomName: notification.roomName } });
       handleDismiss(notification.id);
+    } else {
+      console.error('Socket is not connected for accepting calls');
     }
   };
 
@@ -88,7 +95,7 @@ const Notifications = () => {
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }
