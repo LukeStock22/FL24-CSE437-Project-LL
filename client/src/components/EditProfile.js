@@ -8,6 +8,12 @@ const languageOptions = [
   { value: 'English', label: 'English' },
   { value: 'Spanish', label: 'Spanish' },
   { value: 'French', label: 'French' },
+  { value: 'Polish', label: 'Polish' },
+  { value: 'Italian', label: 'Italian' },
+  { value: 'Mandarin', label: 'Mandarin' },
+  { value: 'German', label: 'German' },
+  { value: 'Hindi', label: 'Hindi' },
+  { value: 'Russian', label: 'Russian' },
   // Add more languages as needed
 ];
 
