@@ -296,7 +296,8 @@ const handleBlockUser = (userId) => {
             {friends.length > 0 ? (
               friends.map((friend) => (
                 <li key={friend.id} className="p-2 border-b">
-                  {friend.name} - Last Message: {getRecentMessage(friend.id)}
+                  <span className = "font-bold">{friend.name}: </span>
+                  <span className = {`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{getRecentMessage(friend.id)}</span>
                 </li>
               ))
             ) : (
@@ -304,7 +305,7 @@ const handleBlockUser = (userId) => {
             )}
           </ul>
           <Link to="/messages">
-            <button className="mt-2 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+            <button className="mt-2 bg-blue-500 text-white py-2 px-4 rounded w-full hover:bg-blue-600">
               Check Messages
             </button>
           </Link>
@@ -327,12 +328,11 @@ const handleBlockUser = (userId) => {
        {/* Find Matches and Manage Friends Section */}
        <div className={`w-1/4 p-4 rounded ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} shadow-md`}>
         <SearchUsers users = {users} />
-
-         <h2 className="text-xl font-bold mt-4 mb-4">Find Matches</h2>
-         <Link to="/matching">
-           <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Add Friends</button>
-         </Link>
-         <h2 className="text-xl font-bold mt-8 mb-4">Friends</h2>
+        <h2 className="text-xl font-bold mt-8 mb-4">Find Matches</h2>
+          <Link to="/matching">
+            <button className="bg-blue-500 text-white py-2 px-4 rounded w-full hover:bg-blue-600">Add Friends</button>
+          </Link>
+         <h2 className="text-xl font-bold mt-8">Friends</h2>
             <ul>
               {friends.length > 0 ? (
               friends.map((friend) => (
@@ -349,7 +349,6 @@ const handleBlockUser = (userId) => {
               <p>No friends added yet</p>
             )}
             </ul>
-            
        </div>
      </div>
 

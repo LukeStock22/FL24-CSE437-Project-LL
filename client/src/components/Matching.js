@@ -168,16 +168,13 @@ const Matching = () => {
   }, []);
 
   useEffect(() => {
-    // filtering matches to exclude blocked by users
-    const filtered = matches.filter((match) => !blockedByUsers.includes(match.id));
+    // Combine both block lists and filter out matches with IDs in either list
+    const filtered = matches.filter(
+      (match) => !blockedByUsers.includes(match.id) && !blockedUsers.includes(match.id)
+    );
+    console.log("blocked/blocked by filtered matches:", filtered);
     setFilteredMatches(filtered);
-  }, [matches, blockedByUsers]);
-
-  useEffect(() => {
-    // filtering matches to exclude blocked users
-    const filtered = matches.filter((match) => !blockedUsers.includes(match.id));
-    setFilteredMatches(filtered);
-  }, [matches, blockedUsers]);
+  }, [matches, blockedByUsers, blockedUsers]);
 
 
   const handleAddFriend = (user2_id) => {
