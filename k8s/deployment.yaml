@@ -1,0 +1,149 @@
+# Database StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: language-app-db
+  labels:
+    app: language-app-db
+spec:
+  selector:
+    matchLabels:
+      app: language-app-db
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: language-app-db
+    spec:
+      containers:
+      - name: language-app-db
+        image: docker.io/library/mysql:8
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "password"
+        livenessProbe:
+          tcpSocket:
+            port: 3306
+
+---
+
+# Database Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: language-app-db
+spec:
+  selector:
+    app: language-app-db
+  ports:
+  - port: 3306
+    targetPort: 3306
+  clusterIP: None
+
+---
+
+# Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: language-app-draft-backend
+  labels:
+    app: language-app-draft-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: language-app-draft-backend
+  template:
+    metadata:
+      labels:
+        app: language-app-draft-backend
+    spec:
+      containers:
+      - name: language-app-draft-backend-container
+        image: fl24-cse437-project-ll-backend:v1
+        ports:
+        - containerPort: 4000
+
+---
+
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: language-app-draft-backend-service
+spec:
+  selector:
+    app: language-app-draft-backend
+  ports:
+  - protocol: TCP
+    port: 4000
+    targetPort: 4000
+  type: LoadBalancer
+
+---
+
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: language-app-draft-frontend
+  labels:
+    app: language-app-draft-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: language-app-draft-frontend
+  template:
+    metadata:
+      labels:
+        app: language-app-draft-frontend
+    spec:
+      containers:
+      - name: language-app-draft-frontend-container
+        image: fl24-cse437-project-ll-frontend:v1
+        imagePullPolicy: IfNotPresent
+        command: ["npm", "start"]
+        ports:
+        - containerPort: 3000
+        env:
+        - name: APP_APPLICATION__HOST
+          value: "0.0.0.0"
+
+---
+
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: language-app-draft-frontend-service
+spec:
+  selector:
+    app: language-app-draft-frontend
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+  type: LoadBalancer
+
+---
+
+# Ingress for Project Draft
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: language-app-draft-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: language-app-draft-frontend-service  # Replace with the desired service (e.g., frontend)
+            port:
+              number: 3000
