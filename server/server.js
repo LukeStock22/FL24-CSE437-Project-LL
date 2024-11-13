@@ -870,6 +870,7 @@ app.post('/api/chats/start', (req, res) => {
 
         // Return the newly created chat's ID
         res.json({ success: true, chat_id: result.insertId });
+        
       });
     });
   });

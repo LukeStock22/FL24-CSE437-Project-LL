@@ -2,6 +2,7 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SocketContext } from '../context/SocketContext';
+import { DarkModeContext } from './DarkModeContext'; 
 
 const Notifications = () => {
   const { socket, isSocketConnected } = useContext(SocketContext);
@@ -9,6 +10,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [viewProfile, setViewProfile] = useState(null);
+  const { darkMode, setDarkMode } = useContext(DarkModeContext); 
 
   // Fetch initial notifications on component mount
   useEffect(() => {
@@ -187,7 +189,7 @@ const Notifications = () => {
           </div>
         ))
       ) : (
-        <p className="text-sm">No new notifications</p>
+        <span className = {`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>No new notifications</span>
       )}
 
       
