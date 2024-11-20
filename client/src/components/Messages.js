@@ -17,8 +17,26 @@ const Messages = () => {
   const [newMessage, setNewMessage] = useState('');
   const [friends, setFriends] = useState([]);
   const scrollContainerRef = useRef(null);
+  const [selectedLanguage, setSelectedLanguage] = useState('English'); // Default translation mode
+  const [translationPopup, setTranslationPopup] = useState(null); // Stores translation details
   
   const hasJoinedChat = useRef(false);
+
+  const handleLanguageChange = (e) => {
+    setSelectedLanguage(e.target.value);
+  };
+
+  const languages = [
+    { value: 'EN', label: 'English' },
+    { value: 'ES', label: 'Spanish' },
+    { value: 'FR', label: 'French' },
+    { value: 'PL', label: 'Polish' },
+    { value: 'IT', label: 'Italian' },
+    { value: 'ZH', label: 'Mandarin' }, // Simplified Chinese (Mandarin)
+    { value: 'DE', label: 'German' },
+    { value: 'HI', label: 'Hindi' },
+    { value: 'RU', label: 'Russian' },
+  ];
 
   // Fetch initial data for chats and friends
   useEffect(() => {
@@ -190,13 +208,50 @@ const Messages = () => {
     const userId = JSON.parse(atob(token.split('.')[1])).id;
     const isCurrentUser = msg.sender_id === userId;
     const senderName = isCurrentUser ? 'You' : msg.sender_name;
-
+  
     return (
-      <div key={`${msg.sender_id}-${index}`} className={`relative mb-4 pt-2 pb-2 px-4 py-4 rounded
-      ${isCurrentUser ? 'bg-blue-500 self-end text-white' : (darkMode? 'bg-gray-700' : 'bg-gray-300')} max-w-xs ${isCurrentUser ? 'ml-auto' : 'mr-auto'}`}>
-        <strong>{senderName}: </strong>{msg.message}
-      </div>
+      <div
+      key={`${msg.sender_id}-${index}`}
+      onClick={() => {
+        console.log('Message clicked:', msg.message); // Add this
+        translateMessage(msg.message); // Trigger translation
+      }}
+      className={`relative mb-4 pt-2 pb-2 px-4 py-4 rounded cursor-pointer ${
+        isCurrentUser ? 'bg-blue-500 self-end text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-300')
+      } max-w-xs ${isCurrentUser ? 'ml-auto' : 'mr-auto'}`}
+    >
+      <strong>{senderName}: </strong>{msg.message}
+    </div>
     );
+  };
+
+  // Function to handle message translation
+  const translateMessage = async (message) => {
+    try {
+      const res = await fetch('http://localhost:4000/api/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: message,
+          targetLanguage: selectedLanguage,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTranslationPopup({ original: message, translated: data.translatedText });
+      } else {
+        console.error('Translation failed:', data.message);
+      }
+    } catch (error) {
+      console.error('Error translating message:', error);
+    }
+  };
+
+  // Function to close the translation popup
+  const closeTranslationPopup = () => {
+    setTranslationPopup(null);
   };
 
   return (
@@ -222,7 +277,21 @@ const Messages = () => {
 
           {showChat && (
             <div className="w-3/4 pl-1 relative flex flex-col"> 
-              <div className="flex flex-row items-center w-full">
+              <div className="flex flex-row items-center w-full gap-4">
+                {/* Dropdown */}
+                
+                <select
+                  value={selectedLanguage}
+                  onChange={handleLanguageChange}
+                  className="flex-grow bg-gray-100 text-black py-2 px-4 rounded hover:bg-gray-200 mb-4 border border-gray-300"
+                >
+                  <option disabled>Translation Mode</option>
+                  {languages.map((lang) => (
+                    <option key={lang.value} value={lang.value}>
+                      {lang.label}
+                    </option>
+                  ))}
+                </select>
                 {/* Video Call Button */}
                 <button
                   onClick={handleVideoCall}
@@ -267,6 +336,32 @@ const Messages = () => {
           )}
         </div>
       </div>
+      {/* Translation Popup */}
+      {translationPopup && (
+        <div
+          className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50"
+          onClick={closeTranslationPopup}
+        >
+          <div
+            className="bg-white p-6 rounded shadow-lg text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold mb-4">Translation</h3>
+            <p className="mb-4">
+              <strong>Original:</strong> {translationPopup.original}
+            </p>
+            <p>
+              <strong>Translated:</strong> {translationPopup.translated}
+            </p>
+            <button
+              onClick={closeTranslationPopup}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
   

@@ -14,9 +14,13 @@ import dotenv from 'dotenv';
 const router = express.Router();
 dotenv.config();
 import OpenAI from 'openai';
+import { Translator } from 'deepl-node';
+
 
 const app = express();
 const server = http.createServer(app);
+const translator = new Translator(process.env.DEEPL_API_KEY);
+
 const io = new Server(server, { cors: { origin: '*' } }); // Initialize Socket.IO
 
 app.use(express.json());
@@ -126,6 +130,23 @@ socket.on('start-video-call', ({ roomName, friendId }) => {
 });
 */
 
+
+// TRANSLATION ROUTE
+app.post('/api/translate', async (req, res) => {
+  const { text, targetLanguage } = req.body;
+
+  if (!text || !targetLanguage) {
+    return res.status(400).json({ success: false, message: 'Text and target language are required' });
+  }
+
+  try {
+    const result = await translator.translateText(text, null, targetLanguage.toUpperCase());
+    res.json({ success: true, translatedText: result.text });
+  } catch (error) {
+    console.error('Translation error:', error);
+    res.status(500).json({ success: false, message: 'Translation failed', error: error.message });
+  }
+});
 
 
 
