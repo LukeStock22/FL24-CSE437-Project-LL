@@ -16,6 +16,8 @@ dotenv.config();
 import OpenAI from 'openai';
 import { Translator } from 'deepl-node';
 
+const onlineUsers = new Map(); 
+
 
 const app = express();
 const server = http.createServer(app);
@@ -88,6 +90,30 @@ const authenticateToken = (req, res, next) => {
    next();
  });
 };
+
+//ACTIVE STATUS
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  // Handle user joining
+  socket.on('set_active_user', (userId) => {
+    onlineUsers.set(userId, socket.id); // Map userId to socket ID
+    console.log('User joined:', userId);
+    io.emit('active_users', Array.from(onlineUsers.keys())); // Broadcast active users
+  });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId); // Remove user from active users
+        break;
+      }
+    }
+    console.log('User disconnected:', socket.id);
+    io.emit('active_users', Array.from(onlineUsers.keys())); // Broadcast updated active users
+  });
+});
 
 // Socket.IO events for video calling
 io.on('connection', (socket) => {
@@ -1270,6 +1296,7 @@ app.post('/api/chat', async (req, res) => {
     res.status(500).json({ success: false, message: 'Error interacting with the assistant' });
   }
 });
+
 
 
 const PORT = process.env.PORT || 4000;

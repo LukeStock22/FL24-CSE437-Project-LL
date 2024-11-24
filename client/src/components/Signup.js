@@ -43,7 +43,7 @@ const Signup = () => {
     if (data.success) {
       localStorage.setItem('token', data.token);
       //alert('Signup successful!');
-      navigate('/edit-profile');
+      navigate('/edit-profile/step-1');
     } else {
       // Display the error message returned from the server
       setErrorMessage(data.message || 'Signup failed. Please try again.');
