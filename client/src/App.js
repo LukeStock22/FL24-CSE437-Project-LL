@@ -15,7 +15,11 @@ import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import Chatbot from './components/Chatbot';
 import VideoCall from './components/VideoCall';
+import StepOne from './components/StepOne';
+import StepTwo from './components/StepTwo';
+
 import './tailwind.css';
+
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,6 +47,8 @@ const App = () => {
             <Route path="/password-reset/:token" element={<ResetPassword />} />
             <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/video-call" element={<VideoCall />} />
+            <Route path="/edit-profile/step-1" element={<StepOne />} />
+            <Route path="/edit-profile/step-2" element={<StepTwo />} />
           </Routes>
         </Router>
       </DarkModeProvider>
