@@ -20,7 +20,12 @@ const languageOptions = [
 const timezoneOptions = [
   { value: 'EST', label: 'EST (Eastern Standard Time)' },
   { value: 'CST', label: 'CST (Central Standard Time)' },
-  { value: 'PST', label: 'PST (Pacific Standard Time)' }
+  { value: 'PST', label: 'PST (Pacific Standard Time)' },
+  { value: 'GMT', label: 'GMT (Greenwich Mean Time)' },
+  { value: 'UTC', label: 'UTC (Universal Time Coordinated)' },
+  { value: 'AST', label: 'AST (Arabia Standard Time)' },
+  { value: 'JST', label: 'Japan Standard Time' },
+
 ];
 
 const EditProfile = () => {

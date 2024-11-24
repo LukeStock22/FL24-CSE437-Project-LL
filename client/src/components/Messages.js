@@ -12,14 +12,31 @@ const Messages = () => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [selectedFriendName, setSelectedFriendName] = useState('');
-  const [selectedFriendId, setSelectedFriendId] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [friends, setFriends] = useState([]);
   const scrollContainerRef = useRef(null);
+  const [selectedLanguage, setSelectedLanguage] = useState('English'); // Default translation mode
+  const [translationPopup, setTranslationPopup] = useState(null); // Stores translation details
   
   const hasJoinedChat = useRef(false);
+
+  const handleLanguageChange = (e) => {
+    setSelectedLanguage(e.target.value);
+  };
+
+  const languages = [
+    { value: 'EN', label: 'English' },
+    { value: 'ES', label: 'Spanish' },
+    { value: 'FR', label: 'French' },
+    { value: 'PL', label: 'Polish' },
+    { value: 'IT', label: 'Italian' },
+    { value: 'ZH', label: 'Mandarin' }, // Simplified Chinese (Mandarin)
+    { value: 'DE', label: 'German' },
+    { value: 'HI', label: 'Hindi' },
+    { value: 'RU', label: 'Russian' },
+  ];
 
   // Fetch initial data for chats and friends
   useEffect(() => {
@@ -118,7 +135,6 @@ const Messages = () => {
       .then((data) => {
         if (data.success) {
           fetchChats();
-          setSelectedChat(data.chat_id);
         }
       })
       .catch((err) => console.error('Error starting chat:', err));
@@ -127,14 +143,12 @@ const Messages = () => {
   const handleChatClick = (friend) => {
     const chat = chats.find((chat) => chat.friend_id === friend.id);
     setSelectedFriendName(friend.name);
-    setSelectedFriendId(friend.id);
     setShowChat(true);
 
-    if (!chat) {
-      startChat(friend.id);
-    } 
-    else{
+    if (chat) {
       setSelectedChat(chat.id);
+    } else {
+      startChat(friend.id);
     }
   };
 
@@ -194,25 +208,50 @@ const Messages = () => {
     const userId = JSON.parse(atob(token.split('.')[1])).id;
     const isCurrentUser = msg.sender_id === userId;
     const senderName = isCurrentUser ? 'You' : msg.sender_name;
-
+  
     return (
-      <div key={`${msg.sender_id}-${index}`} className={`relative max-w-xs ${isCurrentUser ? 'ml-auto' : 'mr-auto'}`}>
-        {!isCurrentUser && (
-          <div className={`${isCurrentUser ? 'text-right' : 'text-left'} mb-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            {senderName}:
-          </div>
-        )}
-        <div className={`mb-2 pt-2 pb-2 px-4 py-4 rounded
-        ${isCurrentUser ? 'bg-blue-500 self-end text-white' : (darkMode? 'bg-gray-700' : 'bg-gray-300')} max-w-xs ${isCurrentUser ? 'ml-auto' : 'mr-auto'}`}>
-          {msg.message}
-        </div>
-      </div>
+      <div
+      key={`${msg.sender_id}-${index}`}
+      onClick={() => {
+        console.log('Message clicked:', msg.message); // Add this
+        translateMessage(msg.message); // Trigger translation
+      }}
+      className={`relative mb-4 pt-2 pb-2 px-4 py-4 rounded cursor-pointer ${
+        isCurrentUser ? 'bg-blue-500 self-end text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-300')
+      } max-w-xs ${isCurrentUser ? 'ml-auto' : 'mr-auto'}`}
+    >
+      <strong>{senderName}: </strong>{msg.message}
+    </div>
     );
   };
 
-  const getRecentMessage = (friendId) => {
-    const chat = chats.find((chat) => chat.friend_id === friendId);
-    return chat && chat.last_message ? chat.last_message : 'No messages yet';
+  // Function to handle message translation
+  const translateMessage = async (message) => {
+    try {
+      const res = await fetch('http://localhost:4000/api/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: message,
+          targetLanguage: selectedLanguage,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTranslationPopup({ original: message, translated: data.translatedText });
+      } else {
+        console.error('Translation failed:', data.message);
+      }
+    } catch (error) {
+      console.error('Error translating message:', error);
+    }
+  };
+
+  // Function to close the translation popup
+  const closeTranslationPopup = () => {
+    setTranslationPopup(null);
   };
 
   return (
@@ -227,15 +266,9 @@ const Messages = () => {
                 <div key={friend.id}>
                   <button
                     onClick={() => handleChatClick(friend)} // Handles both new and existing chats
-                    className={`w-full py-2 px-4 mb-2 text-left rounded shadow
-                    ${selectedFriendName === friend.name ? 
-                    `${darkMode ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-blue-500 text-white hover:bg-blue-600 border-gray-300'}`
-                    :`${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-black hover:bg-gray-200 border-gray-300'}`}`}
+                    className={`w-full py-2 px-4 text-left rounded shadow ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-black hover:bg-gray-200 border-gray-300'}`}
                   >
-                    <span className = "font-bold">{friend.name}: </span>
-                    <span className={`text-sm ${selectedFriendName===friend.name? 'text-white' : darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {getRecentMessage(friend.id)}
-                    </span>
+                    {friend.name}
                   </button>
                 </div>
               ))}
@@ -243,42 +276,41 @@ const Messages = () => {
           </div>
 
           {showChat && (
-            <div className="w-3/4 flex flex-col"> 
-              <div className={`flex flex-row items-center w-full rounded justify-between py-2 px-4 shadow mb-2 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className = "flex-1 text-left">
-                  <span>To: </span>
-                  <span
-                  className = "ml-1 font-bold hover:underline cursor-pointer"
-                  onClick={()=> navigate(`/view-profile/${selectedFriendId}`)}
-                  > {selectedFriendName}
-                  </span>
-                </div>
-                <div className = "flex items-center justify-end">
-                  {/* Video Call Button */}
-                  <button
-                    onClick={handleVideoCall}
-                    className=" bg-green-500 py-1 px-4 mr-4 text-white rounded hover:bg-green-600 "
-                  >
-                    Video Call
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowChat(false);
-                      setSelectedFriendName(null);
-                      setSelectedFriendId(null);
-                    }}
-                    className={`text-2xl font-bold mb-1 ${darkMode ? 'text-white hover:text-gray-200' : 'text-gray-500 hover:text-gray-600'}`}
-                  >
-                    &times;
-                  </button>
-                </div>
+            <div className="w-3/4 pl-1 relative flex flex-col"> 
+              <div className="flex flex-row items-center w-full gap-4">
+                {/* Dropdown */}
+                
+                <select
+                  value={selectedLanguage}
+                  onChange={handleLanguageChange}
+                  className="flex-grow bg-gray-100 text-black py-2 px-4 rounded hover:bg-gray-200 mb-4 border border-gray-300"
+                >
+                  <option disabled>Translation Mode</option>
+                  {languages.map((lang) => (
+                    <option key={lang.value} value={lang.value}>
+                      {lang.label}
+                    </option>
+                  ))}
+                </select>
+                {/* Video Call Button */}
+                <button
+                  onClick={handleVideoCall}
+                  className="flex-grow bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mb-4"
+                >
+                  Video Call
+                </button>
+                <button
+                  onClick={() => setShowChat(false)}
+                  className={`py-2 px-4 rounded flex mb-4 items-center justify-center text-2xl font-bold z-10 ${darkMode ? 'text-white hover:text-gray-200' : 'text-gray-500 hover:text-gray-600'}`}
+                >
+                  &times;
+                </button>
               </div>
-
  
               <div className = "flex-col flex-grow flex">
                 <div
                   ref={scrollContainerRef}
-                  className={`flex-grow flex flex-col max-h-[55vh] p-4 rounded shadow mb-2 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white'} overflow-y-auto`}
+                  className={`flex-grow flex flex-col max-h-[60vh] p-4 rounded shadow mb-3 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white'} overflow-y-auto`}
                 >
                   {messages.map((msg, index) => renderMessage(msg, index))}
                 </div>
@@ -304,6 +336,32 @@ const Messages = () => {
           )}
         </div>
       </div>
+      {/* Translation Popup */}
+      {translationPopup && (
+        <div
+          className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50"
+          onClick={closeTranslationPopup}
+        >
+          <div
+            className="bg-white p-6 rounded shadow-lg text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold mb-4">Translation</h3>
+            <p className="mb-4">
+              <strong>Original:</strong> {translationPopup.original}
+            </p>
+            <p>
+              <strong>Translated:</strong> {translationPopup.translated}
+            </p>
+            <button
+              onClick={closeTranslationPopup}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
   
