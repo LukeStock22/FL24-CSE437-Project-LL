@@ -4,13 +4,17 @@ FROM node:18 AS build
 # Set the working directory inside the container
 WORKDIR /app
 
-COPY . .
-
-# Copy the package.json and package-lock.json
+# Copy package.json and package-lock.json first for caching purposes
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install && npm run build
+# Install dependencies (this will be cached unless package.json changes)
+RUN npm install
 
-# Expose the port Nginx runs on
+# Copy the rest of the code into the container
+COPY . .
+
+# Run the build process
+RUN npm run build
+
+# Expose the port Nginx runs on (this might change depending on your deployment)
 EXPOSE 3000
